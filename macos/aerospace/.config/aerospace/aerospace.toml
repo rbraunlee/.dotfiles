@@ -88,11 +88,16 @@ outer.right =     1
 # See: https://nikitabobko.github.io/AeroSpace/commands#exec-and-forget
 # You can uncomment the following lines to open up terminal with alt + enter shortcut (like in i3)
 alt-enter = '''exec-and-forget osascript -e '
-tell application "Terminal"
-    do script
+tell application "iTerm2"
+    set newWin to (create window with profile "DailyNotes" command "/bin/bash /Volumes/ssd//notetaker_macos.sh")
+    tell current session of newWin
+        set name to "Daily Notes"
+    end tell
     activate
 end tell'
 '''
+
+# In your aerospace.toml
 
 # See: https://nikitabobko.github.io/AeroSpace/commands#layout
 alt-slash = 'layout tiles horizontal vertical'
@@ -203,3 +208,7 @@ backspace = ['close-all-windows-but-current', 'mode main']
 # mod-shift-j = ['join-with down', 'mode main']
 # mod-shift-k = ['join-with up', 'mode main']
 # mod-shift-l = ['join-with right', 'mode main']
+[[on-window-detected]]
+if.app-id = 'com.googlecode.iterm2'
+if.window-title-regex-substring = 'DailyNotes'
+run = 'layout floating'
