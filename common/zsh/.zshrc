@@ -1,25 +1,33 @@
-# Created by Zap installer
-[ -f "${XDG_DATA_HOME:-$HOME/.local/share}/zap/zap.zsh" ] && source "${XDG_DATA_HOME:-$HOME/.local/share}/zap/zap.zsh"
-plug "zsh-users/zsh-autosuggestions"
-plug "zap-zsh/supercharge"
-plug "zsh-users/zsh-syntax-highlighting"
+# --- 1. Zap Plugin Manager ---
+if [ -f "${XDG_DATA_HOME:-$HOME/.local/share}/zap/zap.zsh" ]; then
+    source "${XDG_DATA_HOME:-$HOME/.local/share}/zap/zap.zsh"
+    plug "zsh-users/zsh-autosuggestions"
+    plug "zap-zsh/supercharge"
+    plug "zsh-users/zsh-syntax-highlighting"
+fi
 
+# --- 2. Shared Environment ---
 eval "$(starship init zsh)"
-# Load and initialise completion system
-autoload -Uz compinit
-compinit
-
-export PATH="$(brew --prefix ruby)/bin:/opt/python@3.12/libexec/bin:/opt/homebrew/opt/openjdk@11/bin:$PATH"
-export JEKYLL_EDITOR=nvim
-
-alias vim="nvim"
-
 autoload -Uz compinit && compinit
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
 
+alias v="nvim"
+alias vim="nvim"
 export GPG_TTY=$(tty)
 
+# --- 3. OS-Specific Conditional Logic ---
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    # --- macOS Paths ---
+    if command -v brew >/dev/null 2>&1; then
+        export PATH="$(brew --prefix ruby)/bin:/opt/homebrew/opt/openjdk@11/bin:$PATH"
+    fi
+    export PATH="/opt/python@3.12/libexec/bin:$PATH"
+    
+elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    # --- Arch/Linux Configs ---
+    alias pacman="sudo pacman"
+    export MOZ_ENABLE_WAYLAND=1
+fi
 
-
-# Generated for envman. Do not edit.
+# --- 4. External Loaders ---
 [ -s "$HOME/.config/envman/load.sh" ] && source "$HOME/.config/envman/load.sh"
