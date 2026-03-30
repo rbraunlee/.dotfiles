@@ -6,6 +6,10 @@ if [ -f "${XDG_DATA_HOME:-$HOME/.local/share}/zap/zap.zsh" ]; then
     plug "zsh-users/zsh-syntax-highlighting"
 fi
 
+if command -v starship >/dev/null 2>&1; then
+    eval "$(starship init zsh)"
+fi
+
 # --- 2. Shared Environment ---
 eval "$(starship init zsh)"
 autoload -Uz compinit && compinit
