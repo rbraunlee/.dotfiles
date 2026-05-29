@@ -2,6 +2,7 @@
 description: "Phase 1: Brainstorm ideas, explore high-level feature sets, and output findings."
 mode: all
 temperature: 0.7
+model: openrouter/deepseek/deepseek-v4-flash
 permission:
   edit: allow
   bash: deny

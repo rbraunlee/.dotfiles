@@ -2,6 +2,7 @@
 description: "Phase 5: Execute validation checks, assess user-feel, and build self-verification debugging loops."
 mode: subagent
 temperature: 0.2
+model: openrouter/deepseek/deepseek-v4-pro
 permission:
   edit: allow
   bash: allow

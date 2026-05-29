@@ -2,6 +2,7 @@
 description: "Phase 3: Breakdown alignment documentation into precise, testable Vertical Slices."
 mode: primary
 temperature: 0.1
+model: openrouter/deepseek/deepseek-v4-pro
 permission:
   edit: allow
   bash: deny

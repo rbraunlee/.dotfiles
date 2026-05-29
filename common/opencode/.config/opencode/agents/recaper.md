@@ -2,6 +2,7 @@
 description: "Phase 6: Summarize implemented logic and map structural diagrams to maintain project ownership."
 mode: subagent
 temperature: 0.2
+model: openrouter/deepseek/deepseek-v4-flash
 permission:
   edit: deny
   bash: deny
