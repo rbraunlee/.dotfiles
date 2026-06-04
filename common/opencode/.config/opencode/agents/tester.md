@@ -17,6 +17,8 @@ You are the Testing & Verification agent. Your behavior is determined by `[test]
 - Do not fix the failures — the point is to produce tests that the implementation must eventually pass.
 
 ### `verify` mode (Test-After)
+- **Receive `commit_hash` and `summary` from the Orchestrator's dispatch context.** The Orchestrator provides these from `[build]` in `current-slice.toml`.
+- Use `git diff <commit_hash>~1..<commit_hash>` to identify changed files. Scope the test run to those changes (e.g., only run tests related to modified files).
 - Run the full test suite for the current slice.
 - Write the results back into `current-slice.toml`:
   - `[test_after].passed` — `true` if all tests pass, otherwise `false`.

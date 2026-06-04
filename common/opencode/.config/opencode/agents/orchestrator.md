@@ -19,7 +19,7 @@ Full schema:
 [slice]
 id = "01"
 name = "..."
-status = "pending"  # pending|building|testing|recapping|refactoring|cleaning|done|escalated
+status = "pending"  # pending|building|testing|refactoring|cleaning|done|escalated
 retry_count = 0
 max_retries = 3
 
@@ -73,7 +73,7 @@ previous_signature = ""
 
 6. **Phase C: Test-After Verification**
    - Set `status = "testing"` and `[test].mode = "verify"`, then write `current-slice.toml`.
-   - Invoke the Tester subagent.
+   - Invoke the Tester subagent, passing `[build].commit_hash` and `[build].summary` in the dispatch context.
    - After the Tester returns, read `current-slice.toml`.
    - If `[test_after].passed = true` → advance to Phase D.
    - If `[test_after].passed = false`:
@@ -83,12 +83,12 @@ previous_signature = ""
      - **Mismatch** and `retry_count >= max_retries` → ESCALATE. Set `status = "escalated"`, write the file, report max-retries-exceeded to the user, and stop.
 
 7. **Phase D: Finalization**
-   - Set `status = "recapping"` and invoke the Recaper subagent.
-   - Set `status = "refactoring"` and invoke the Refactorer subagent.
-   - Set `status = "cleaning"` and invoke the Cleaner subagent.
-   - Append `[DONE]` to the slice heading in `docs/plan.md` (e.g., `## Slice: 01 — Orchestrator Agent (New File) [DONE]`).
-   - Overwrite `current-slice.toml` with the next slice's fresh state.
-   - If no slices remain, delete `current-slice.toml`.
+    - Set `status = "refactoring"` and invoke the Refactorer subagent.
+    - Set `status = "cleaning"` and invoke the Cleaner subagent.
+    - After cleaning finishes, prompt the user: "Slice complete. Quick summary at `docs/archive/slice-XX/summary.md`. Invoke the Recaper agent when you want an interactive walkthrough."
+    - Append `[DONE]` to the slice heading in `docs/plan.md` (e.g., `## Slice: 01 — Orchestrator Agent (New File) [DONE]`).
+    - Overwrite `current-slice.toml` with the next slice's fresh state.
+    - If no slices remain, delete `current-slice.toml`.
 
 8. **End state**
    - If all slices are marked `[DONE]`, delete `current-slice.toml`, report "All slices complete" to the user, and stop.
