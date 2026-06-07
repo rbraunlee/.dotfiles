@@ -9,7 +9,7 @@ return {
       integrations = {
         diffview = true, -- Integrate with diffview.nvim
       },
-      vim.keymap.set('n', '<leader>gs', vim.cmd.Neogit, { desc = '[G]it[S]tatus' }),
     }
+    vim.keymap.set('n', '<leader>gs', vim.cmd.Neogit, { desc = '[G]it[S]tatus' })
   end,
 }
