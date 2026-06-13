@@ -34,4 +34,4 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
 fi
 
 # --- 4. External Loaders ---
-[ -s "$HOME/.config/envman/load.sh" ] && source "$HOME/.config/envman/load.sh"
+[ -f "$HOME/.local/share/secrets/env.sh" ] && source "$HOME/.local/share/secrets/env.sh"

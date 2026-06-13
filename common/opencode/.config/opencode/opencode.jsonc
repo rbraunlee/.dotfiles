@@ -1,5 +1,14 @@
 {
   "$schema": "https://opencode.ai/config.json",
+  "mcpServers": {
+    "obsidian": {
+      "type": "http",
+      "url": "https://127.0.0.1:27124/mcp/",
+      "headers": {
+        "Authorization": "Bearer {env:OBS_MCP_TOKEN}"
+      }
+    }
+  },
   "provider": {
     "openrouter": {
       "models": {
