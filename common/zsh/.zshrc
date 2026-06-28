@@ -11,7 +11,6 @@ if command -v starship >/dev/null 2>&1; then
 fi
 
 # --- 2. Shared Environment ---
-eval "$(starship init zsh)"
 autoload -Uz compinit && compinit
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
 
@@ -34,4 +33,6 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
 fi
 
 # --- 4. External Loaders ---
-[ -f "$HOME/.local/share/secrets/env.sh" ] && source "$HOME/.local/share/secrets/env.sh"
+if [ -f "$HOME/.env" ]; then
+    source "$HOME/.env"
+fi

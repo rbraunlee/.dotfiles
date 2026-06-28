@@ -1,11 +1,21 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "mcpServers": {
+  "mcp": {
     "obsidian": {
-      "type": "http",
+      "type": "remote",
       "url": "https://127.0.0.1:27124/mcp/",
       "headers": {
         "Authorization": "Bearer {env:OBS_MCP_TOKEN}"
+      },
+      "oauth": false,
+      "enabled": true
+    },
+    "brave-search": {
+      "type": "local",
+      "command": ["npx", "-y", "@modelcontextprotocol/server-brave-search"],
+      "enabled": true,
+      "environment": {
+        "BRAVE_API_KEY": "{env:BRAVE_SEARCH_TOKEN}"
       }
     }
   },
