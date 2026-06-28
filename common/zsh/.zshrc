@@ -41,3 +41,4 @@ if [ -f '/Users/rbl/Downloads/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/r
 
 # The next line enables shell command completion for gcloud.
 if [ -f '/Users/rbl/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/rbl/Downloads/google-cloud-sdk/completion.zsh.inc'; fi
+[ -f "$HOME/.local/share/secrets/env.sh" ] && source "$HOME/.local/share/secrets/env.sh"
