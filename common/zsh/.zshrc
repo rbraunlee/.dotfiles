@@ -35,3 +35,9 @@ fi
 
 # --- 4. External Loaders ---
 [ -s "$HOME/.config/envman/load.sh" ] && source "$HOME/.config/envman/load.sh"
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/Users/rbl/Downloads/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/rbl/Downloads/google-cloud-sdk/path.zsh.inc'; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f '/Users/rbl/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/rbl/Downloads/google-cloud-sdk/completion.zsh.inc'; fi
