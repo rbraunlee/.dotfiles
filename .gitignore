@@ -1,3 +1,13 @@
 .env
 docs/
 plan.md
+
+# OpenCode local service credentials - never commit
+service.json
+
+# npm dependencies (belt-and-braces; the nested rule lives in
+# common/opencode/.config/opencode/.gitignore)
+node_modules/
+
+# GIMP project sources - the exported PNGs are canonical
+*.xcf
