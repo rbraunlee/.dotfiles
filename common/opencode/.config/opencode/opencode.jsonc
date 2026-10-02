@@ -23,7 +23,9 @@
     "openrouter": {
       "models": {
         "~deepseek/deepseek-v4-flash": {},
-        "~deepseek/deepseek-v4-pro": {}
+        "~deepseek/deepseek-v4-pro": {},
+        "~z-ai/glm-5.2": {},
+        "~tencent/hy3:free": {}
       }
     }
   }
