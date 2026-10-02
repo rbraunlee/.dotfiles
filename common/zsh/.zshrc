@@ -16,6 +16,8 @@ zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
 
 alias v="nvim"
 alias vim="nvim"
+alias reload="source ~/.zshrc"
+
 export GPG_TTY=$(tty)
 
 # --- 3. OS-Specific Conditional Logic ---
@@ -36,3 +38,12 @@ fi
 if [ -f "$HOME/.env" ]; then
     source "$HOME/.env"
 fi
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/home/rbl/google-cloud-sdk/path.zsh.inc' ]; then . '/home/rbl/google-cloud-sdk/path.zsh.inc'; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f '/home/rbl/google-cloud-sdk/completion.zsh.inc' ]; then . '/home/rbl/google-cloud-sdk/completion.zsh.inc'; fi
+
+# Generated for envman. Do not edit.
+[ -s "$HOME/.config/envman/load.sh" ] && source "$HOME/.config/envman/load.sh"
