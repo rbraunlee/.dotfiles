@@ -2,7 +2,7 @@
 description: "Phase 4: Implement functional, highly targeted logic for the active vertical slice."
 mode: subagent
 temperature: 0.2
-model: openrouter/deepseek/deepseek-v4-pro
+model: openrouter/z-ai/glm-5.2
 permission:
   edit: allow
   bash: allow

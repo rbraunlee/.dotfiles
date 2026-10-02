@@ -2,7 +2,7 @@
 description: "Phase 2: Thoroughly interview the developer ('Grill Me' phase) based on initial brainstorming."
 mode: all
 temperature: 0.3
-model: openrouter/deepseek/deepseek-v4-pro
+model: openrouter/z-ai/glm-5.2
 permission:
   edit: allow
   bash: deny

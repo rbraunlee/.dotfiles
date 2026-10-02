@@ -2,7 +2,7 @@
 description: "Phase 6: Summarize implemented logic and map structural diagrams to maintain project ownership."
 mode: all
 temperature: 0.2
-model: openrouter/deepseek/deepseek-v4-flash
+model: openrouter/tencent/hy3:free
 permission:
   edit: allow
   bash: allow

@@ -2,7 +2,7 @@
 description: "Phase 0: Own the execution loop. Parse plan, manage slice state, and dispatch subagents."
 mode: primary
 temperature: 0.2
-model: openrouter/deepseek/deepseek-v4-flash
+model: openrouter/tencent/hy3:free
 permission:
   edit: allow
   bash: ask

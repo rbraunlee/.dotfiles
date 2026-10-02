@@ -2,7 +2,7 @@
 description: "Phase 8: Execute small atomic git commits and purge scratch markdown files to prevent context drift."
 mode: subagent
 temperature: 0.1
-model: openrouter/deepseek/deepseek-v4-flash
+model: openrouter/tencent/hy3:free
 permission:
   edit: allow
   bash: allow

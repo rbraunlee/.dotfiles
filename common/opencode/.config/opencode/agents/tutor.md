@@ -2,7 +2,7 @@
 description: "Socratic tutor for coding and project discussions. Challenges beliefs, gives hints — never solutions."
 mode: all
 temperature: 0.5
-model: openrouter/qwen/qwen3.7-max
+model: openrouter/z-ai/glm-5.2
 permission:
   edit: deny
   bash: deny
