@@ -424,5 +424,10 @@ alias personal='cp -Rf /personal/* ~'
 #cpufetch
 #colorscript random
 
+# TODO: hardcoded /home/rudolf — that account no longer exists, so this prepends
+# a non-existent directory to $PATH on every shell start. Change to
+# "$HOME/.local/bin:$PATH". Inert only because this package is not currently
+# stowed: ~/.bashrc is a hand-written file and `stow -n -d linux bash` reports a
+# conflict. Fix before stowing this package on any machine.
 # uv
 export PATH="/home/rudolf/.local/bin:$PATH"

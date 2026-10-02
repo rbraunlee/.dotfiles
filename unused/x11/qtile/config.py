@@ -87,6 +87,9 @@ keys = [
     Key([mod], "r", lazy.spawncmd(), desc="Spawn a command using a prompt widget"),
     # Note
     # Key([mod], "n", lazy.spawn("sh ~/.local/bin/notetaker.sh"), desc="Spwan Note"),
+    # TODO: hardcoded /home/rudolf — that account no longer exists, so this key
+    # spawns a script that cannot be found. Change to
+    # "~/.local/bin/notetaker.sh". Inert only because this package is unused.
     Key(
         [mod],
         "p",
