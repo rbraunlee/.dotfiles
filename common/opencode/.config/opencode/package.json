@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@drawio/mcp": "1.6.3",
     "@modelcontextprotocol/server-brave-search": "0.6.2"
   }
 }

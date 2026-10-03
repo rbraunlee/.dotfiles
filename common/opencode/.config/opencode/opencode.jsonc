@@ -33,7 +33,11 @@
     { "action": "shell", "resource": "rm -fr *", "effect": "ask" },
     { "action": "shell", "resource": "rm -r -f *", "effect": "ask" },
     { "action": "shell", "resource": "dd *", "effect": "ask" },
-    { "action": "shell", "resource": "mkfs*", "effect": "ask" }
+    { "action": "shell", "resource": "mkfs*", "effect": "ask" },
+
+    // draw.io opens a browser tab. Denied everywhere, re-allowed per agent.
+    // Any future global allow must go ABOVE this line, never below — see O12.
+    { "action": "drawio_*", "resource": "*", "effect": "deny" }
   ],
   // Caps what a single tool result can persist into the database.
   "tool_output": {
@@ -44,26 +48,35 @@
     "ignore": ["**/node_modules/**", "**/.git/**"]
   },
   "mcp": {
-    "obsidian": {
-      "type": "remote",
-      "url": "https://127.0.0.1:27124/mcp/",
-      "headers": {
-        "Authorization": "Bearer {env:OBS_MCP_TOKEN}"
+    "servers": {
+      "obsidian": {
+        "type": "remote",
+        "url": "https://127.0.0.1:27124/mcp/",
+        "headers": {
+          "Authorization": "Bearer {env:OBS_MCP_TOKEN}"
+        },
+        "oauth": false
       },
-      "oauth": false,
-      "enabled": true
-    },
-    "brave-search": {
-      "type": "local",
-      "command": [
-        "sh",
-        "-c",
-        "exec \"$HOME/.config/opencode/node_modules/.bin/mcp-server-brave-search\" \"$@\"",
-        "--"
-      ],
-      "enabled": true,
-      "environment": {
-        "BRAVE_API_KEY": "{env:BRAVE_SEARCH_TOKEN}"
+      "brave-search": {
+        "type": "local",
+        "command": [
+          "sh",
+          "-c",
+          "exec \"$HOME/.config/opencode/node_modules/.bin/mcp-server-brave-search\" \"$@\"",
+          "--"
+        ],
+        "environment": {
+          "BRAVE_API_KEY": "{env:BRAVE_SEARCH_TOKEN}"
+        }
+      },
+      "drawio": {
+        "type": "local",
+        "command": [
+          "sh",
+          "-c",
+          "exec \"$HOME/.config/opencode/node_modules/.bin/drawio-mcp\" \"$@\"",
+          "--"
+        ]
       }
     }
   }
