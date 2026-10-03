@@ -1,5 +1,39 @@
 {
   "$schema": "https://opencode.ai/config.json",
+  // Ordered rules; the last match wins. Narrow exceptions must come after the
+  // broader rules they override, or they silently lose.
+  "permissions": [
+    { "action": "read", "resource": "*", "effect": "allow" },
+
+    // Secret material. The *.env.example allow that follows is mandatory: the
+    // *.env deny above would otherwise make committing an example impossible.
+    { "action": "read", "resource": "*.env", "effect": "deny" },
+    { "action": "read", "resource": "*.env.*", "effect": "deny" },
+    { "action": "read", "resource": "*credentials*", "effect": "deny" },
+    { "action": "read", "resource": "*id_rsa*", "effect": "deny" },
+    { "action": "read", "resource": "*id_ed25519*", "effect": "deny" },
+    { "action": "read", "resource": "*.pem", "effect": "deny" },
+    { "action": "read", "resource": "*auth.json", "effect": "deny" },
+    { "action": "read", "resource": "*.npmrc", "effect": "deny" },
+    { "action": "read", "resource": "*.pypirc", "effect": "deny" },
+    { "action": "read", "resource": "*.env.example", "effect": "allow" },
+
+    // Read-only git inspection runs unattended; anything that changes remote
+    // or local state asks first. Best-effort defence, not a sandbox:
+    // `command rm`, aliases and shell functions all evade these patterns.
+    { "action": "shell", "resource": "git status *", "effect": "allow" },
+    { "action": "shell", "resource": "git diff *", "effect": "allow" },
+    { "action": "shell", "resource": "git log *", "effect": "allow" },
+    { "action": "shell", "resource": "git push *", "effect": "ask" },
+    { "action": "shell", "resource": "git reset --hard *", "effect": "ask" },
+    { "action": "shell", "resource": "git clean -f*", "effect": "ask" },
+    { "action": "shell", "resource": "git filter-branch*", "effect": "ask" },
+    { "action": "shell", "resource": "rm -rf *", "effect": "ask" },
+    { "action": "shell", "resource": "rm -fr *", "effect": "ask" },
+    { "action": "shell", "resource": "rm -r -f *", "effect": "ask" },
+    { "action": "shell", "resource": "dd *", "effect": "ask" },
+    { "action": "shell", "resource": "mkfs*", "effect": "ask" }
+  ],
   "mcp": {
     "obsidian": {
       "type": "remote",
