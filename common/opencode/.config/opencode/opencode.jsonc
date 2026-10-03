@@ -34,6 +34,16 @@
     { "action": "shell", "resource": "dd *", "effect": "ask" },
     { "action": "shell", "resource": "mkfs*", "effect": "ask" }
   ],
+  // Caps what a single tool result can persist into the database. This is the
+  // main brake on session_message growth; the default retains 51 KB per result.
+  "tool_output": {
+    "max_lines": 1000,
+    "max_bytes": 16384
+  },
+  // Without these the watcher churns on node_modules and the repo's .git.
+  "watcher": {
+    "ignore": ["**/node_modules/**", "**/.git/**"]
+  },
   "mcp": {
     "obsidian": {
       "type": "remote",
