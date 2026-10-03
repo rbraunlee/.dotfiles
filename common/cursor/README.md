@@ -1,6 +1,7 @@
-# Cursor agents (vertical-slice workflow)
+# Cursor skills
 
-Port of the OpenCode agent harness for Cursor/Composer. All agents use `model: inherit` (same model as the parent Composer session). Only `recaper` is `readonly: true`.
+Skills for Cursor/Composer. **This package no longer ships agents** — see
+[Agents](#agents) below.
 
 ## Install
 
@@ -16,18 +17,47 @@ To remove:
 stow -D -d common -t ~ cursor
 ```
 
-**Note:** If `~/.cursor/agents` or `~/.cursor/skills` already exist as real directories with other content, stow will conflict. Resolve before installing.
+**Note:** If `~/.cursor/skills` already exists as a real directory with other
+content, stow will conflict. Resolve before installing.
 
-## Workflow phases
+## Skills
 
-| Phase | Agent | Invocation |
-|-------|-------|------------|
-| 1 Brainstorm | brainstomer | `/brainstomer` |
-| 2 Align | aligner | `/aligner` (after `docs/brainstorming.md` exists) |
-| 3 Plan | planner | `/planner` (after alignment is confirmed) |
-| 0 Execute | orchestrator | `/orchestrator run the next slice` |
+| Skill | Purpose |
+|-------|---------|
+| `brainstorm` | Structured ideation session using proven techniques |
+| `grill-with-docs` | Stress-test a plan against the domain model and project language, updating `CONTEXT.md` and ADRs as decisions land |
 
-### Workspace artifacts
+`brainstorm` is the only Cursor-specific file here — its text differs from the
+OpenCode copy. `grill-with-docs` is byte-identical to the OpenCode skill, so the
+two copies can drift apart at any time.
+
+## Agents
+
+The nine agents that used to live in `.cursor/agents/` were removed as duplicated
+drift. Each had drifted from its twin in
+[common/opencode](../opencode/.config/opencode/agents/) — same names, different
+prompts — and nothing kept the two trees in step:
+
+| Was | Also in OpenCode |
+|-----|-----------------|
+| `aligner` | yes |
+| `brainstomer` | yes |
+| `builder` | yes |
+| `cleaner` | yes |
+| `orchestrator` | yes |
+| `planner` | yes |
+| `recaper` | yes |
+| `refactorer` | yes |
+| `tester` | yes |
+
+OpenCode is the system of record for agents and has the fuller set — it also has
+`tutor`, which Cursor never had. If you move back to Cursor, port them from
+there rather than maintaining a second copy.
+
+## Workspace artifacts
+
+The workflow these agents participated in wrote to `docs/`, which is gitignored
+and therefore not shared through this repo:
 
 | File | Purpose |
 |------|---------|
@@ -36,20 +66,8 @@ stow -D -d common -t ~ cursor
 | `docs/plan.md` | Phase 3 output — single source of truth for execution |
 | `current-slice.toml` | Orchestrator resume state |
 
-### Execution subagents (dispatched by orchestrator)
-
-| Agent | Role |
-|-------|------|
-| builder | Implement active slice |
-| tester | Scaffold or verify tests |
-| recaper | Summarize changes (read-only) |
-| refactorer | Post-build cleanup refactor |
-| cleaner | Atomic commits, purge scratch files |
-
 ## Models
 
-Every agent frontmatter sets `model: inherit`. Pick your model once in the Composer UI; all subagents follow it.
-
-## OpenCode parity
-
-This package mirrors [common/opencode](../opencode/). Both can be stowed independently. OpenCode-specific features (per-agent temperature, bash approval modes, skill permissions) are not replicated — behavior is prompt-enforced in Cursor.
+OpenCode agents set per-agent `model:` values; Cursor subagents inherit from the
+Composer session instead. This package no longer has agents to carry that
+difference.
