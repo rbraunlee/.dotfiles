@@ -6,8 +6,10 @@
 
 /* ================== Main Bar ================== */
 * {
-    /* Use the Inter font, which is a modern sans-serif font */
-    font-family: "SeriousShanns Nerd Font Mono";
+    /* Comic Shanns Mono Nerd Font, as installed under ~/.local/share/fonts.
+     * Was "SeriousShanns Nerd Font Mono", which is not installed on this
+     * machine — the bar was silently falling back to the fontconfig default. */
+    font-family: "ComicShannsMono Nerd Font Mono";
     font-size: 18px;
     min-height: 0;
 }
