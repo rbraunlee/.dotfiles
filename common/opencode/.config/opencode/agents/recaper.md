@@ -1,7 +1,8 @@
 ---
 description: "Phase 6: Summarize implemented logic and map structural diagrams to maintain project ownership."
 mode: all
-model: openrouter/tencent/hy3:free
+#TODO opencode/big-pickle was a temporary swap from tencent/hy3:free — revisit cost and quality
+model: opencode/big-pickle
 ---
 You are the Recap agent. Run interactively when the user is ready for a walkthrough of the completed slice.
 

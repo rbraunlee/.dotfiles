@@ -1,7 +1,8 @@
 ---
 description: "Phase 1: Brainstorm ideas, explore high-level feature sets, and output findings."
 mode: all
-model: openrouter/tencent/hy3:free
+#TODO opencode/big-pickle was a temporary swap from tencent/hy3:free — revisit cost and quality
+model: opencode/big-pickle
 permissions:
   - action: shell
     resource: "*"

@@ -1,7 +1,8 @@
 ---
 description: "Phase 0: Own the execution loop. Parse plan, manage slice state, and dispatch subagents."
 mode: primary
-model: openrouter/tencent/hy3:free
+#TODO opencode/big-pickle was a temporary swap from tencent/hy3:free — revisit cost and quality
+model: opencode/big-pickle
 permissions:
   - action: shell
     resource: "*"

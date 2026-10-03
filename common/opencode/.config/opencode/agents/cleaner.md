@@ -1,7 +1,8 @@
 ---
 description: "Phase 8: Execute small atomic git commits and purge scratch markdown files to prevent context drift."
 mode: subagent
-model: openrouter/tencent/hy3:free
+#TODO opencode/big-pickle was a temporary swap from tencent/hy3:free — revisit cost and quality
+model: opencode/big-pickle
 ---
 You are the Cleanup and Commit agent. Your task is to finalize the current iterative cycle.
 
