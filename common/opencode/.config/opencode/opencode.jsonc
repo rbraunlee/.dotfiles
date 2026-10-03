@@ -5,8 +5,9 @@
   "permissions": [
     { "action": "read", "resource": "*", "effect": "allow" },
 
-    // Secret material. The *.env.example allow that follows is mandatory: the
-    // *.env deny above would otherwise make committing an example impossible.
+    // Secret material. The *.env.example allow at the end is mandatory: the
+    // *.env deny above would otherwise make committing an example file
+    // impossible.
     { "action": "read", "resource": "*.env", "effect": "deny" },
     { "action": "read", "resource": "*.env.*", "effect": "deny" },
     { "action": "read", "resource": "*credentials*", "effect": "deny" },
@@ -34,13 +35,11 @@
     { "action": "shell", "resource": "dd *", "effect": "ask" },
     { "action": "shell", "resource": "mkfs*", "effect": "ask" }
   ],
-  // Caps what a single tool result can persist into the database. This is the
-  // main brake on session_message growth; the default retains 51 KB per result.
+  // Caps what a single tool result can persist into the database.
   "tool_output": {
     "max_lines": 1000,
     "max_bytes": 16384
   },
-  // Without these the watcher churns on node_modules and the repo's .git.
   "watcher": {
     "ignore": ["**/node_modules/**", "**/.git/**"]
   },
@@ -56,7 +55,12 @@
     },
     "brave-search": {
       "type": "local",
-      "command": ["npx", "-y", "@modelcontextprotocol/server-brave-search"],
+      "command": [
+        "sh",
+        "-c",
+        "exec \"$HOME/.config/opencode/node_modules/.bin/mcp-server-brave-search\" \"$@\"",
+        "--"
+      ],
       "enabled": true,
       "environment": {
         "BRAVE_API_KEY": "{env:BRAVE_SEARCH_TOKEN}"

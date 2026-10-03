@@ -1,5 +1,5 @@
 {
   "dependencies": {
-    "@opencode-ai/plugin": "1.17.3"
+    "@modelcontextprotocol/server-brave-search": "0.6.2"
   }
 }
