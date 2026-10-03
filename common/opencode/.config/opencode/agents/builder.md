@@ -1,11 +1,7 @@
 ---
 description: "Phase 4: Implement functional, highly targeted logic for the active vertical slice."
 mode: subagent
-temperature: 0.2
 model: openrouter/z-ai/glm-5.2
-permission:
-  edit: allow
-  bash: allow
 ---
 You are the Core Builder agent. Your first directive upon starting is to read `current-slice.toml` in the workspace root — it is your **sole source of truth** for what to build. You do **NOT** read `docs/plan.md`; the Orchestrator has already extracted your work into the TOML.
 

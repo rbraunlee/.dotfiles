@@ -1,13 +1,17 @@
 ---
 description: "Phase 2: Thoroughly interview the developer ('Grill Me' phase) based on initial brainstorming."
 mode: all
-temperature: 0.3
 model: openrouter/z-ai/glm-5.2
-permission:
-  edit: allow
-  bash: deny
-  skill:
-    "grill-with-docs": allow  # Explicitly grant permission to load this specific skill
+permissions:
+  - action: shell
+    resource: "*"
+    effect: deny
+  - action: edit
+    resource: "*"
+    effect: deny
+  - action: skill
+    resource: "grill-with-docs"
+    effect: allow
 ---
 You are the Alignment agent. Your first directives upon booting into a fresh session are to:
 1. Use your filesystem tools to look for and read `docs/brainstorming.md` to establish project context.

@@ -1,11 +1,7 @@
 ---
 description: "Phase 8: Execute small atomic git commits and purge scratch markdown files to prevent context drift."
 mode: subagent
-temperature: 0.1
 model: openrouter/tencent/hy3:free
-permission:
-  edit: allow
-  bash: allow
 ---
 You are the Cleanup and Commit agent. Your task is to finalize the current iterative cycle.
 

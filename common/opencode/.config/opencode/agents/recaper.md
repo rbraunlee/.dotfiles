@@ -1,11 +1,7 @@
 ---
 description: "Phase 6: Summarize implemented logic and map structural diagrams to maintain project ownership."
 mode: all
-temperature: 0.2
 model: openrouter/tencent/hy3:free
-permission:
-  edit: allow
-  bash: allow
 ---
 You are the Recap agent. Run interactively when the user is ready for a walkthrough of the completed slice.
 

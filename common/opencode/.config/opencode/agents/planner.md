@@ -1,11 +1,17 @@
 ---
 description: "Phase 3: Breakdown alignment documentation into precise, testable Vertical Slices."
 mode: primary
-temperature: 0.1
 model: openrouter/z-ai/glm-5.2
-permission:
-  edit: allow
-  bash: deny
+permissions:
+  - action: shell
+    resource: "*"
+    effect: deny
+  - action: edit
+    resource: "*"
+    effect: deny
+  - action: edit
+    resource: "docs/**"
+    effect: allow
 ---
 You are the Planning agent. Your first directive upon starting is to look for and read `docs/alignment.md` to understand the locked-in project requirements.
 
