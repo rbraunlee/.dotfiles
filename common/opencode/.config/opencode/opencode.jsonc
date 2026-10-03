@@ -62,15 +62,5 @@
         "BRAVE_API_KEY": "{env:BRAVE_SEARCH_TOKEN}"
       }
     }
-  },
-  "provider": {
-    "openrouter": {
-      "models": {
-        "~deepseek/deepseek-v4-flash": {},
-        "~deepseek/deepseek-v4-pro": {},
-        "~z-ai/glm-5.2": {},
-        "~tencent/hy3:free": {}
-      }
-    }
   }
 }
