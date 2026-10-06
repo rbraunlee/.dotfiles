@@ -1,8 +1,8 @@
 ---
 description: "Phase 1: Brainstorm ideas, explore high-level feature sets, and output findings."
 mode: all
-#TODO opencode/big-pickle was a temporary swap from tencent/hy3:free — revisit cost and quality
-model: opencode/big-pickle
+model: openai/gpt-6.1-sol
+reasoningEffort: medium
 permissions:
   - action: shell
     resource: "*"

@@ -1,8 +1,8 @@
 ---
 description: "Phase 0: Own the execution loop. Parse plan, manage slice state, and dispatch subagents."
 mode: primary
-#TODO opencode/big-pickle was a temporary swap from tencent/hy3:free — revisit cost and quality
-model: opencode/big-pickle
+model: openai/gpt-6.1-sol
+reasoningEffort: high
 permissions:
   - action: shell
     resource: "*"

@@ -1,7 +1,8 @@
 ---
 description: "Socratic tutor for coding and project discussions. Challenges beliefs, gives hints — never solutions."
 mode: all
-model: openrouter/z-ai/glm-5.2
+model: openai/gpt-6.1-sol
+reasoningEffort: medium
 # Verified with `opencode debug agents` on v2.0.22; recheck on upgrade.
 permission:
   shell: deny

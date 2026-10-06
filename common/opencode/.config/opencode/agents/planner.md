@@ -1,7 +1,8 @@
 ---
 description: "Phase 3: Breakdown alignment documentation into precise, testable Vertical Slices."
 mode: primary
-model: openrouter/z-ai/glm-5.2
+model: openai/gpt-6.1-sol
+reasoningEffort: high
 # Verified with `opencode debug agents` on v2.0.22; recheck on upgrade.
 permission:
   shell: deny

@@ -1,7 +1,8 @@
 ---
 description: "Phase 2: Thoroughly interview the developer ('Grill Me' phase) based on initial brainstorming."
 mode: all
-model: openrouter/z-ai/glm-5.2
+model: openai/gpt-6.1-sol
+reasoningEffort: high
 permissions:
   - action: shell
     resource: "*"
