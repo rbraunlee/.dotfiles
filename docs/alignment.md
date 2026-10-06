@@ -1,8 +1,9 @@
 # Alignment — multi-orchestrator workflow
 
-**Status:** long-term target, with the first-trial order approved 2026-10-06.
-**Active sequence:** [workflow-plan.md](workflow-plan.md) proves one approved slice
-before extending the launcher. The contracts below describe the longer-term
+**Status:** long-term target; the first S0 trial ran and was locally accepted
+2026-10-06 ([record](archive/calculator-s0-2026-10-06.md)).
+**Active sequence:** [workflow-plan.md](workflow-plan.md) records that one approved
+slice before any launcher extension. The contracts below describe the longer-term
 workflow, **not** prerequisites already met or a mandate to build W1–W9 first.
 **Basis:** the alignment interview and dated decision/regression notes retained on
 `experiment/opencode-routine-w1-w2-checkpoint` under
@@ -46,10 +47,11 @@ Neither plan authorizes an S0 run. This document does not change runtime code.
 
 ## Current workflow contract
 
-No S0 run or prompt rewrite has occurred. The existing agent role bodies still
-describe the legacy loop; adapt the Orchestrator/Builder/Tester and add a fresh
-read-only Reviewer **after this cleanup**, before any separately approved trial.
-Check actual role access and clone directory routing. On OpenCode v2.0.22,
+The active Orchestrator/Builder/Tester roles were adapted and a fresh read-only
+Reviewer added before the first S0 trial. That trial ran and was locally accepted;
+the post-trial permissions/routing/diff correction was verified offline on installed
+OpenCode v2.0.22, **not** qualified in another real trial. Check actual role access
+and clone directory routing on future runs. On OpenCode v2.0.22,
 `planner`/`tutor` restrictions resolve from singular `permission:` maps while the
 current V2 documentation describes `permissions:` arrays: recheck effective rules
 on upgrade, never infer them from spelling alone.
@@ -60,8 +62,8 @@ The user acts primarily as product owner and QA: discuss intent upstream, approv
 the spec and slice graph, authorize execution, then inspect the finished feature.
 Avoid routine supervision and approval of individual slice implementations.
 
-First prove one bounded approved slice in a trusted disposable pilot project;
-then consider the smallest automation justified by observed friction. Disposable
+The first bounded approved slice was trialed in a trusted disposable pilot project;
+consider the smallest automation justified by observed friction. Disposable
 fixtures and end-to-end validation remain necessary before claiming the eventual
 routine works. The sections below describe that longer-term target, not S0 gates.
 

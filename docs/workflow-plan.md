@@ -11,17 +11,19 @@ history on `experiment/opencode-routine-w1-w2-checkpoint` under
 `linux/opencode-routine/docs/`. Do not merge that branch wholesale or treat its
 tests as S0 or real W2 qualification.
 
-## Prepare before any trial
+## Preparation for the first trial (completed)
 
 1. Obtain separate approval for one feature and a bounded, dependency-ready slice
    in a trusted, disposable project. Record the exact feature baseline commit/ref,
    the spec, slice ticket, applicable acceptance criteria, approved development
    inputs, required slice **and combined-candidate** checks and acceptance handoff.
    Resolve missing checks before starting; never revise requirements just to pass.
-2. In separately authorized work, replace only the active Orchestrator, Builder and
-   Tester legacy-loop instructions and add a fresh read-only Reviewer. Verify their
-   effective permissions and actual clone/tool routing. This cleanup does not rewrite
-   those prompts or execute a trial.
+2. In separately authorized work, the active Orchestrator, Builder and Tester
+   legacy-loop instructions were replaced and a fresh read-only Reviewer added
+   before the first trial. The preparation plan itself did not rewrite prompts or
+   authorize a trial. The later permissions/routing/diff correction was verified
+   offline, not real-qualified; verify effective permissions and actual clone/tool
+   routing on future runs.
 
 ## S0 — one real slice, mostly manual
 

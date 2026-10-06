@@ -1,6 +1,7 @@
 # Glossary — agent-assisted delivery workflow
 
-These terms distinguish the [active one-slice trial](workflow-plan.md) (S0) from
+These terms distinguish the [locally accepted first one-slice trial](archive/calculator-s0-2026-10-06.md)
+(S0) and its [workflow plan](workflow-plan.md) from
 the [longer-term aligned target](alignment.md). Legacy loop analysis is retained
 on `experiment/opencode-routine-w1-w2-checkpoint` at
 `linux/opencode-routine/docs/workflow/loop-logic.md`, not in the current root set.
