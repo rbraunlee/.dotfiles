@@ -65,6 +65,12 @@ Agree on appropriate development access and commands before running anything.
 
 ## After observing S0
 
+The [2026-10-06 power-shortcut follow-up trial](archive/calculator-power-2026-10-06.md)
+passed its reported slice and candidate checks and was locally merged by the user.
+It also exposed persistent permission prompts. Human-approved guarded local fetch
+and optional, separately approved cleanup are proposed/in progress as follow-up,
+**not proved or completed by that trial**.
+
 Address a concrete failure or recurring friction with the smallest verified fix;
 prefer a manual remedy unless automation is justified. If candidate verification
 or guarded feature-head publication proves error-prone, consider automating only
