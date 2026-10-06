@@ -1,7 +1,9 @@
 # Workflow-first plan — prove one slice
 
-**Direction approved 2026-10-06; S0 not yet authorized or run.** This is the active
-implementation order, not a claim that the workflow has passed. The longer-term
+**Direction approved 2026-10-06; S0 calculator trial ran and was locally accepted.**
+See the [dated S0 record](archive/calculator-s0-2026-10-06.md) for outcomes and
+limits. This is the active implementation order, not a claim that later workflow
+automation or sandbox gates have passed. The longer-term
 product contract remains in [alignment.md](alignment.md); terms are in
 [CONTEXT.md](CONTEXT.md). The W1–W9 launcher sequence, W1 acceptance, assembled but
 not real-qualified W2 source/tests and earlier M1/M2 sandbox evidence are dated
