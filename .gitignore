@@ -7,6 +7,10 @@
 !/docs/CONTEXT.md
 plan.md
 
+# Keep bytecode from the experimental package local when on main.
+/linux/opencode-routine/**/__pycache__/
+/linux/opencode-routine/**/*.pyc
+
 # OpenCode local service credentials - never commit
 service.json
 
