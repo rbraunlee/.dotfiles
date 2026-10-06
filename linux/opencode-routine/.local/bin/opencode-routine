@@ -1,0 +1,9 @@
+#!/usr/bin/env python3
+"""Stow entry point; resolve the source package even when invoked via a symlink."""
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "lib/opencode-routine"))
+from routine.cli import main
+
+raise SystemExit(main())

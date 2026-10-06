@@ -1,0 +1,12 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "shell": "/bin/zsh",
+  "update": "disable",
+  "snapshots": false,
+  "formatter": false,
+  "plugins": ["-*"],
+  "mcp": {"servers": {}},
+  "experimental": {
+    "policies": [{"action": "provider.use", "resource": "*", "effect": "deny"}]
+  }
+}
