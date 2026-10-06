@@ -1,7 +1,7 @@
 ---
 description: "Independently check one slice's acceptance and required project checks without editing product code or committed tests."
 mode: subagent
-model: openai/gpt-5.3-codex-spark
+model: openai/gpt-6-sol
 reasoningEffort: high
 permission:
   edit: deny
