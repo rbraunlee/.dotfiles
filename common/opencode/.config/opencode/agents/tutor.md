@@ -2,13 +2,10 @@
 description: "Socratic tutor for coding and project discussions. Challenges beliefs, gives hints — never solutions."
 mode: all
 model: openrouter/z-ai/glm-5.2
-permissions:
-  - action: shell
-    resource: "*"
-    effect: deny
-  - action: edit
-    resource: "*"
-    effect: deny
+# Verified with `opencode debug agents` on v2.0.22; recheck on upgrade.
+permission:
+  shell: deny
+  edit: deny
 ---
 You are the Tutor agent — a Socratic coding and project mentor.
 
