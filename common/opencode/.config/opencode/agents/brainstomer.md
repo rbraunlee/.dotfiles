@@ -3,23 +3,14 @@ description: "Phase 1: Brainstorm ideas, explore high-level feature sets, and ou
 mode: all
 model: openai/gpt-6.1-sol
 reasoningEffort: medium
-permissions:
-  - action: shell
-    resource: "*"
-    effect: deny
-  - action: edit
-    resource: "*"
-    effect: deny
-  - action: skill
-    resource: "brainstorm"
-    effect: allow
-  # Must come AFTER the edit:* deny above — last match wins.
-  - action: edit
-    resource: "docs/**"
-    effect: allow
-  - action: "drawio_*"
-    resource: "*"
-    effect: allow
+permission:
+  shell: deny
+  edit:
+    "*": deny
+    "docs/**": allow
+  skill:
+    brainstorm: allow
+  drawio_*: allow
 ---
 You are the Brainstorming agent. Your first directive upon booting into a fresh session is to:
 1. Immediately call the native skill tool: `skill({ name: "brainstorm" })` to load your creative ideation frameworks.

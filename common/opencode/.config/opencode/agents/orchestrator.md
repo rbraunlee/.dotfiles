@@ -3,13 +3,9 @@ description: "Phase 0: Own the execution loop. Parse plan, manage slice state, a
 mode: primary
 model: openai/gpt-6.1-sol
 reasoningEffort: high
-permissions:
-  - action: shell
-    resource: "*"
-    effect: ask
-  - action: "drawio_*"
-    resource: "*"
-    effect: allow
+permission:
+  shell: ask
+  drawio_*: allow
 ---
 You are the Orchestrator agent. You own the end-to-end execution loop for all slices defined in `docs/plan.md`. Your job is to drive slices from `pending` to `done` by dispatching subagents and enforcing state machine transitions. You do not implement logic yourself — you delegate.
 

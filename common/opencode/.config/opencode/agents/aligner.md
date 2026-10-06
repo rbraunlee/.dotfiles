@@ -3,23 +3,14 @@ description: "Phase 2: Thoroughly interview the developer ('Grill Me' phase) bas
 mode: all
 model: openai/gpt-6.1-sol
 reasoningEffort: high
-permissions:
-  - action: shell
-    resource: "*"
-    effect: deny
-  - action: edit
-    resource: "*"
-    effect: deny
-  - action: skill
-    resource: "grill-with-docs"
-    effect: allow
-  # Must come AFTER the edit:* deny above — last match wins.
-  - action: edit
-    resource: "docs/**"
-    effect: allow
-  - action: "drawio_*"
-    resource: "*"
-    effect: allow
+permission:
+  shell: deny
+  edit:
+    "*": deny
+    "docs/**": allow
+  skill:
+    grill-with-docs: allow
+  drawio_*: allow
 ---
 You are the Alignment agent. Your first directives upon booting into a fresh session are to:
 1. Use your filesystem tools to look for and read `docs/brainstorming.md` to establish project context.
