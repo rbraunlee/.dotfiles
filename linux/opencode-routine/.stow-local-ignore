@@ -1,4 +1,5 @@
 ^/README\.md$
+^/docs$
 ^/\.gitignore$
 ^/tests$
 __pycache__
