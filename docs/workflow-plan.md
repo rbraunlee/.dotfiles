@@ -68,8 +68,10 @@ Agree on appropriate development access and commands before running anything.
 The [2026-10-06 power-shortcut follow-up trial](archive/calculator-power-2026-10-06.md)
 passed its reported slice and candidate checks and was locally merged by the user.
 It also exposed persistent permission prompts. Human-approved guarded local fetch
-and optional, separately approved cleanup are proposed/in progress as follow-up,
-**not proved or completed by that trial**.
+and optional, separately approved cleanup were added to the Orchestrator instructions
+in `0fba995` and verified offline against v2.0.22 resolved agent rules. They have
+not been exercised in a real follow-up trial or on the prior calculator checkouts;
+shell/external permission prompts may still occur.
 
 Address a concrete failure or recurring friction with the smallest verified fix;
 prefer a manual remedy unless automation is justified. If candidate verification

@@ -28,5 +28,8 @@ Despite the agent reporting the latest corrected Orchestrator role active,
 permission prompts persisted for compound scripts/variants beyond the exact
 allowlist and for checking the external original directory. This trial does
 not prove solved automation or sandbox isolation. Human-approved guarded local
-fetch and optional separately approved cleanup are proposed/in progress as
-follow-up, **not proved or completed by this trial**.
+fetch and optional separately approved cleanup were later added to the
+Orchestrator instructions in `0fba995` and verified offline against v2.0.22
+resolved agent rules. Neither was exercised on the prior calculator checkouts
+or proved in a real follow-up trial; shell/external permission prompts may
+still occur. No tests were rerun or cleanup performed for this record.
