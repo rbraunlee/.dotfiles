@@ -1,5 +1,10 @@
 .env
-docs/
+# Root notes stay local by default; select only the active three for Git.
+# Anchor this rule so package-local historical docs can be tracked normally.
+/docs/*
+!/docs/workflow-plan.md
+!/docs/alignment.md
+!/docs/CONTEXT.md
 plan.md
 
 # OpenCode local service credentials - never commit
