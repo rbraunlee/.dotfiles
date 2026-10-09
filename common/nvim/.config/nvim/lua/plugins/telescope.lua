@@ -104,15 +104,47 @@ return {
       }
     end, { desc = '[S]earch [/] in Open Files' })
 
-    -- Shortcut for searching your neovim configuration files
+    -- A folded config directory resolves directly into the package; with
+    -- individual-file Stow links the init file provides the same anchor.
+    local function dotfiles_root(config)
+      local suffix = '/common/nvim/.config/nvim'
+      for _, source in ipairs { config, config .. '/init.lua' } do
+        local resolved = vim.uv.fs_realpath(source)
+        local directory = source == config and resolved or (resolved and vim.fs.dirname(resolved))
+        if directory and directory:sub(-#suffix) == suffix then
+          local root = directory:sub(1, -#suffix - 1)
+          if vim.uv.fs_stat(root .. '/.git') then
+            return root
+          end
+        end
+      end
+    end
+
+    -- Keep the active config path for individual links. Telescope's `follow`
+    -- makes linked files visible; its normal ignore rules remain in force.
     vim.keymap.set('n', '<leader>sn', function()
-      -- builtin.find_files { cwd = vim.fn.stdpath 'config' } doesn't work with stow
-      builtin.find_files { cwd = '~/.dotfiles/.config/nvim' }
+      builtin.find_files { cwd = vim.fn.stdpath 'config', hidden = true, follow = true }
     end, { desc = '[S]earch [N]eovim files' })
-    -- Shortcut for searching .conf files
+    -- Search only environment-group packages, never HOME or repository metadata.
     vim.keymap.set('n', '<leader>sc', function()
-      -- builtin.find_files { cwd = vim.fn.stdpath 'config' } doesn't work with stow
-      builtin.find_files { cwd = '~/.dotfiles/.config' }
-    end, { desc = '[S]earch [N]eovim files' })
+      local root = dotfiles_root(vim.fn.stdpath 'config')
+      if not root then
+        vim.notify('Cannot locate dotfiles repository from active Neovim config', vim.log.levels.WARN)
+        return
+      end
+      local groups = {}
+      for _, group in ipairs { 'common', 'linux', 'macos' } do
+        local path = root .. '/' .. group
+        local stat = vim.uv.fs_stat(path)
+        if stat and stat.type == 'directory' then
+          table.insert(groups, path)
+        end
+      end
+      if #groups == 0 then
+        vim.notify('No environment-group packages found in dotfiles repository: ' .. root, vim.log.levels.WARN)
+        return
+      end
+      builtin.find_files { cwd = root, search_dirs = groups, hidden = true }
+    end, { desc = '[S]earch [C]onfiguration files' })
   end,
 }
