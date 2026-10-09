@@ -55,6 +55,31 @@ alias la='ls -a'
 alias ll='ls -alFh'
 alias df='df -h'
 
+# Explicit media downloads only. ffmpeg supplies yt-dlp's extraction/merge
+# conversions; neither optional provider is consulted at shell startup.
+_media_download() {
+    local format=$1
+    shift
+    (( $# )) || { print -u2 -- 'media: expected at least one URL'; return 2; }
+    local provider
+    for provider in yt-dlp ffmpeg; do
+        if ! whence -p -- "$provider" >/dev/null 2>&1; then
+            print -u2 -- "media: required command not found: $provider"
+            return 127
+        fi
+    done
+    if [[ $format == video ]]; then
+        command yt-dlp -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio' --merge-output-format mp4 -- "$@"
+    else
+        command yt-dlp -x --audio-format "$format" -- "$@"
+    fi
+}
+yta-aac() { _media_download aac "$@"; }
+yta-best() { _media_download best "$@"; }
+yta-flac() { _media_download flac "$@"; }
+yta-mp3() { _media_download mp3 "$@"; }
+ytv-best() { _media_download video "$@"; }
+
 # Extract one existing archive in the current directory. This is not a sandbox:
 # only open archives from trusted sources (archive members may escape the cwd).
 ex() {
@@ -367,6 +392,32 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
             return 127
         fi
         command pactl info | command grep -F 'Server Name'
+    }
+
+    # wf-recorder selects the available codecs; no GPU/VAAPI device is assumed.
+    wsimplescreen() {
+        (( $# == 0 )) || { print -u2 -- 'wsimplescreen: takes no arguments'; return 2; }
+        if ! whence -p -- wf-recorder >/dev/null 2>&1; then
+            print -u2 -- 'wsimplescreen: required command not found: wf-recorder'
+            return 127
+        fi
+        command wf-recorder -a
+    }
+    wsimplescreenrecorder() {
+        (( $# <= 1 )) && [[ ${1-recording.mp4} == *.mp4 ]] || {
+            print -u2 -- 'wsimplescreenrecorder: expected at most one .mp4 output filename'
+            return 2
+        }
+        local output=${1-recording.mp4}
+        if [[ -e $output || -L $output ]]; then
+            print -u2 -- "wsimplescreenrecorder: output already exists: $output"
+            return 1
+        fi
+        if ! whence -p -- wf-recorder >/dev/null 2>&1; then
+            print -u2 -- 'wsimplescreenrecorder: required command not found: wf-recorder'
+            return 127
+        fi
+        command wf-recorder -a -f "$output"
     }
 fi
 
