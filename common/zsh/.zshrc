@@ -67,12 +67,13 @@ ex() {
         return 2
     fi
 
-    # Prefix option-looking relative filenames rather than assuming every
-    # extractor supports -- (notably ar, unrar, 7z and older unzip versions).
-    local archive=$1 tool exit_code
-    [[ $archive == -* ]] && archive=./$archive
+    # Pass an absolute local filename to every provider: GNU tar treats a
+    # relative host:name archive as a remote host, and some extractors do not
+    # support -- for option-looking names. Match the supplied extension before
+    # canonicalizing so a symlink's advertised archive type is respected.
+    local archive=${1:A} tool exit_code
     local -a flags
-    case $archive in
+    case $1 in
         (*.tar.bz2|*.tbz2) tool=tar; flags=(xjf) ;;
         (*.tar.gz|*.tgz)   tool=tar; flags=(xzf) ;;
         (*.tar|*.tar.xz|*.tar.zst) tool=tar; flags=(xf) ;;

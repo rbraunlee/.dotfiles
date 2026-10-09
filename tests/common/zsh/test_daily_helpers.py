@@ -130,7 +130,7 @@ sys.exit(int(os.environ.get("FAIL_" + os.path.basename(sys.argv[0]), "0")))
                 (self.root / filename).write_bytes(b"fixture only: never extracted")
                 result, calls = self.run_shell('ex "$ARCHIVE"', extra_env={"ARCHIVE": filename})
                 self.assertEqual(result.returncode, 0, result.stderr)
-                self.assertEqual(calls, [[tool, flags + ["./" + filename]]])
+                self.assertEqual(calls, [[tool, flags + [str(self.root / filename)]]])
                 self.assertFalse((self.root / "escape").exists())
                 self.trace.unlink()
 
@@ -156,7 +156,7 @@ sys.exit(int(os.environ.get("FAIL_" + os.path.basename(sys.argv[0]), "0")))
         result, calls = self.run_shell('ex safe.zip', extra_env={"FAIL_unzip": "17"})
         self.assertEqual(result.returncode, 17, result.stderr)
         self.assertIn("failed", result.stderr)
-        self.assertEqual(calls, [["unzip", ["safe.zip"]]])
+        self.assertEqual(calls, [["unzip", [str(self.root / "safe.zip")]]])
 
     def test_ex_preserves_absolute_and_relative_names_with_spaces(self):
         self.provider("unzip")
@@ -165,7 +165,18 @@ sys.exit(int(os.environ.get("FAIL_" + os.path.basename(sys.argv[0]), "0")))
                 (self.root / Path(filename).name).write_bytes(b"fixture only")
                 result, calls = self.run_shell('ex "$ARCHIVE"', extra_env={"ARCHIVE": filename})
                 self.assertEqual(result.returncode, 0, result.stderr)
-                self.assertEqual(calls, [["unzip", [filename]]])
+                self.assertEqual(calls, [["unzip", [str(self.root / filename)]]])
+                self.trace.unlink()
+
+    def test_ex_never_passes_remote_looking_relative_tar_name_to_tar(self):
+        self.provider("tar")  # Only the recorder runs; never invoke native tar.
+        for filename in ("host:archive.tar", "host:archive.tar.gz", "-host:archive.tar"):
+            with self.subTest(filename=filename):
+                (self.root / filename).write_bytes(b"fixture only: never extracted")
+                result, calls = self.run_shell('ex "$ARCHIVE"', extra_env={"ARCHIVE": filename})
+                self.assertEqual(result.returncode, 0, result.stderr)
+                flag = "xzf" if filename.endswith("tar.gz") else "xf"
+                self.assertEqual(calls, [["tar", [flag, str(self.root / filename)]]])
                 self.trace.unlink()
 
     def test_source_does_not_call_daily_or_archive_providers(self):
