@@ -187,16 +187,19 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
         done
     }
     list() {
+        (( $# == 0 )) || { print -u2 -- 'list: takes no arguments'; return 2; }
         _arch_require pacman || return $?
-        command pacman -Qqe "$@"
+        command pacman -Qqe
     }
     listt() {
+        (( $# == 0 )) || { print -u2 -- 'listt: takes no arguments'; return 2; }
         _arch_require pacman || return $?
-        command pacman -Qqet "$@"
+        command pacman -Qqet
     }
     listaur() {
+        (( $# == 0 )) || { print -u2 -- 'listaur: takes no arguments'; return 2; }
         _arch_require pacman || return $?
-        command pacman -Qqem "$@"
+        command pacman -Qqem
     }
     update() {
         (( $# == 0 )) || { print -u2 -- 'update: takes no arguments'; return 2; }
@@ -212,20 +215,50 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
     upa() { upall "$@"; }
     cleanup() {
         (( $# == 0 )) || { print -u2 -- 'cleanup: takes no arguments'; return 2; }
-        _arch_require pacman || return $?
-        local orphans query_status
-        orphans=$(command pacman -Qtdq)
+        _arch_require pacman mktemp rm || return $?
+        local diagnostic_file orphans query_status query_error
+        diagnostic_file=$(command mktemp "${TMPDIR:-/tmp}/zsh-arch-cleanup.XXXXXXXX") || {
+            print -u2 -- 'cleanup: unable to create diagnostic file'
+            return 1
+        }
+        # Pacman convention: -Qtdq exits 1 with empty stdout/stderr when no
+        # orphans match. A diagnostic (even with status 1 or 0) is an error.
+        # Keep stderr separate: a warning resembling a package name must
+        # never become a target of the subsequent privileged removal.
+        orphans=$(command pacman -Qtdq 2>"$diagnostic_file")
         query_status=$?
-        # Pacman returns 1 when there are no matching packages. Other errors
-        # must not be mistaken for an empty orphan list.
-        if (( query_status != 0 )) && { (( query_status != 1 )) || [[ -n $orphans ]]; }; then
+        if [[ ! -f $diagnostic_file || ! -r $diagnostic_file ]]; then
+            command rm -f -- "$diagnostic_file" >/dev/null 2>&1
+            print -u2 -- 'cleanup: unable to read diagnostic file'
+            return 1
+        fi
+        query_error=$(<"$diagnostic_file") || {
+            command rm -f -- "$diagnostic_file" >/dev/null 2>&1
+            print -u2 -- 'cleanup: unable to read diagnostic file'
+            return 1
+        }
+        if ! command rm -f -- "$diagnostic_file"; then
+            print -u2 -- 'cleanup: unable to remove diagnostic file'
+            return 1
+        fi
+        if [[ -n $query_error ]] || { (( query_status != 0 )) && { (( query_status != 1 )) || [[ -n $orphans ]]; }; }; then
             print -u2 -- "cleanup: orphan query failed (status $query_status)"
-            return $query_status
+            [[ -z $query_error ]] || print -u2 -r -- "$query_error"
+            (( query_status )) && return $query_status
+            return 1
         fi
         [[ -n $orphans ]] || { print -r -- 'cleanup: no orphans'; return 0; }
-        _arch_require sudo || return $?
         local -a packages
         packages=( "${(@f)orphans}" )
+        local package
+        # Only provider-native package identifiers may be removed.
+        for package in "${packages[@]}"; do
+            if [[ ! $package =~ '^[a-zA-Z0-9@._+-]+$' ]]; then
+                print -u2 -- "cleanup: unexpected orphan query output: $package"
+                return 1
+            fi
+        done
+        _arch_require sudo || return $?
         command sudo pacman -Rns -- "${packages[@]}"
     }
     rip() {

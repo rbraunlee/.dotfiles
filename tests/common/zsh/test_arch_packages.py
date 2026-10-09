@@ -24,6 +24,21 @@ class ArchPackagesTest(unittest.TestCase):
         (self.fixture / "compinit").write_text(":\n")
         self.calls = self.root / "calls"
         self.provider("tty", '#!/bin/sh\necho /dev/fixture-tty\n')
+        # The only temporary diagnostic file is created/deleted inside this
+        # fixture root; neither stub can invoke system mktemp or rm.
+        self.provider('mktemp', '''#!/usr/bin/python3
+import os, tempfile
+fd, path = tempfile.mkstemp(prefix='zsh-arch-cleanup.', dir=os.environ['TMPDIR'])
+os.close(fd)
+print(path)
+''')
+        self.provider('rm', '''#!/usr/bin/python3
+import os, pathlib, sys
+assert sys.argv[1:3] == ['-f', '--']
+path = pathlib.Path(sys.argv[3])
+assert path.resolve().parent == pathlib.Path(os.environ['TMPDIR']).resolve()
+path.unlink(missing_ok=True)
+''')
 
     def provider(self, name, code=None):
         if code is None:
@@ -35,6 +50,7 @@ name = os.path.basename(sys.argv[0])
 with open(os.environ["CALLS"], "a") as output:
     output.write(json.dumps([name, sys.argv[1:]]) + "\\n")
 print(os.environ.get("OUTPUT_" + name, ""), end="")
+print(os.environ.get("ERROR_" + name, ""), end="", file=sys.stderr)
 sys.exit(int(os.environ.get("FAIL_" + name, "0")))
 '''
         target = self.bin / name
@@ -51,6 +67,7 @@ sys.exit(int(os.environ.get("FAIL_" + name, "0")))
             "PATH": str(self.bin), "BIN": str(self.bin),
             "ZSHRC": str(ZSHRC), "FIXTURE": str(self.fixture),
             "CALLS": str(self.calls),
+            "TMPDIR": str(self.root),
         }
         env.update(extra_env or {})
         # Only the absolute Zsh executable, builtins and fixture PATH are used.
@@ -85,6 +102,15 @@ sys.exit(int(os.environ.get("FAIL_" + name, "0")))
                                  ["pacman", ["-Sii", "--", "a b*;"]],
                                  ["pacman", ["-Qqe"]], ["pacman", ["-Qqet"]],
                                  ["pacman", ["-Qqem"]]])
+
+    def test_fixed_package_lists_reject_any_arguments_before_query(self):
+        self.provider('pacman')
+        for invocation in ('list --remove orphan', 'listt --sync pkg', 'listaur --noconfirm'):
+            with self.subTest(invocation=invocation):
+                result, calls = self.run_shell(invocation)
+                self.assertEqual(result.returncode, 2, result.stderr)
+                self.assertIn('takes no arguments', result.stderr)
+                self.assertEqual(calls, [])
 
     def test_option_looking_query_target_is_not_interpreted_as_a_pacman_switch(self):
         self.provider('pacman')
@@ -123,10 +149,11 @@ sys.exit(int(os.environ.get("FAIL_" + name, "0")))
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertEqual(calls, [["pacman", ["-Qtdq"]]])
                 self.calls.unlink()
-        result, calls = self.run_shell('cleanup', extra_env={"OUTPUT_pacman": "orphan-one\nodd name\n"})
+        result, calls = self.run_shell('cleanup', extra_env={"OUTPUT_pacman": "orphan-one\nodd+name\n"})
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(calls, [["pacman", ["-Qtdq"]],
-                                 ["sudo", ["pacman", "-Rns", "--", "orphan-one", "odd name"]]])
+                                 ["sudo", ["pacman", "-Rns", "--", "orphan-one", "odd+name"]]])
+        self.assertEqual(list(self.root.glob('zsh-arch-cleanup.*')), [])
 
     def test_cleanup_never_removes_on_query_failure_and_propagates_remove_failure(self):
         self.provider("pacman")
@@ -138,6 +165,56 @@ sys.exit(int(os.environ.get("FAIL_" + name, "0")))
         result, calls = self.run_shell('cleanup', extra_env={"OUTPUT_pacman": "one\n", "FAIL_sudo": "21"})
         self.assertEqual(result.returncode, 21, result.stderr)
         self.assertEqual(calls, [["pacman", ["-Qtdq"]], ["sudo", ["pacman", "-Rns", "--", "one"]]])
+
+    def test_cleanup_status_one_with_diagnostic_is_failure_not_no_orphans(self):
+        self.provider('pacman')
+        self.provider('sudo')
+        result, calls = self.run_shell('cleanup', extra_env={
+            'FAIL_pacman': '1', 'ERROR_pacman': 'error: database could not be read\n'})
+        self.assertEqual(result.returncode, 1, result.stderr)
+        self.assertIn('database could not be read', result.stderr)
+        self.assertEqual(calls, [['pacman', ['-Qtdq']]])
+        self.assertEqual(list(self.root.glob('zsh-arch-cleanup.*')), [])
+
+    def test_cleanup_successful_query_with_diagnostic_never_removes_diagnostic(self):
+        self.provider('pacman')
+        self.provider('sudo')
+        result, calls = self.run_shell('cleanup', extra_env={
+            'OUTPUT_pacman': 'orphan-one\n', 'ERROR_pacman': 'warning: database inconsistent\n'})
+        self.assertNotEqual(result.returncode, 0, result.stderr)
+        self.assertIn('database inconsistent', result.stderr)
+        self.assertEqual(calls, [['pacman', ['-Qtdq']]])
+
+    def test_cleanup_failed_diagnostic_capture_cannot_report_no_orphans(self):
+        self.provider('pacman')
+        self.provider('sudo')
+        self.provider('mktemp', '#!/bin/sh\nexit 19\n')
+        result, calls = self.run_shell('cleanup')
+        self.assertNotEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, [])
+
+    def test_cleanup_unreadable_diagnostic_cannot_report_no_orphans(self):
+        self.provider('sudo')
+        self.provider('pacman', '''#!/usr/bin/python3
+import json, os, pathlib, sys
+with open(os.environ['CALLS'], 'a') as calls:
+    calls.write(json.dumps(['pacman', sys.argv[1:]]) + '\\n')
+file = pathlib.Path(os.readlink('/proc/self/fd/2'))
+assert file.resolve().parent == pathlib.Path(os.environ['TMPDIR']).resolve()
+file.unlink()
+sys.exit(1)
+''')
+        result, calls = self.run_shell('cleanup')
+        self.assertNotEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, [['pacman', ['-Qtdq']]])
+
+    def test_cleanup_diagnostic_that_looks_like_package_name_is_not_a_target(self):
+        self.provider('pacman')
+        self.provider('sudo')
+        result, calls = self.run_shell('cleanup', extra_env={
+            'OUTPUT_pacman': 'orphan-one\n', 'ERROR_pacman': 'database\n'})
+        self.assertNotEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, [['pacman', ['-Qtdq']]])
 
     def test_expac_inspection_uses_unprivileged_sorted_limited_pipelines(self):
         for name in ("expac", "sort", "tail", "nl"):
