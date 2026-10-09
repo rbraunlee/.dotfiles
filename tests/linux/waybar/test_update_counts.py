@@ -21,7 +21,7 @@ class UpdateCountTests(unittest.TestCase):
         self.marker = self.home / "arch-release"
         self.marker.touch()
         self.calls = self.home / "calls"
-        self.provider("yay", "aur-pkg 1 -> 2\n")
+        self.provider("paru", "aur-pkg 1 -> 2\n")
         self.provider("checkupdates", "official-pkg 1 -> 2\n")
 
     def provider(self, name, output="", status=0):
@@ -55,12 +55,12 @@ class UpdateCountTests(unittest.TestCase):
                 self.assertEqual((result.returncode, result.stdout, self.calls.exists()), (0, "", False))
 
     def test_combined_count_retains_icon_and_total(self):
-        self.provider("yay", "aur-one 1 -> 2\naur-two 3 -> 4\n")
+        self.provider("paru", "aur-one 1 -> 2\naur-two 3 -> 4\n")
         result = self.run_script()
         self.assertEqual((result.returncode, result.stdout), (0, " 3\n"))
 
     def test_empty_successful_queries_leave_bar_blank(self):
-        self.provider("yay")
+        self.provider("paru")
         self.provider("checkupdates")
         result = self.run_script()
         self.assertEqual((result.returncode, result.stdout), (0, "\n"))
@@ -71,7 +71,7 @@ class UpdateCountTests(unittest.TestCase):
         self.assertEqual((result.returncode, result.stdout), (0, " 1\n"))
 
     def test_failing_aur_must_not_show_partial_official_count(self):
-        self.provider("yay", "provider error\n", status=1)
+        self.provider("paru", "provider error\n", status=1)
         result = self.run_script()
         self.assertEqual((result.returncode, result.stdout), (0, "Updates unavailable\n"))
 
@@ -81,7 +81,7 @@ class UpdateCountTests(unittest.TestCase):
         self.assertEqual((result.returncode, result.stdout), (0, "Updates unavailable\n"))
 
     def test_missing_aur_is_unavailable(self):
-        (self.bin / "yay").unlink()
+        (self.bin / "paru").unlink()
         result = self.run_script()
         self.assertEqual((result.returncode, result.stdout), (0, "Updates unavailable\n"))
 
@@ -91,7 +91,7 @@ class UpdateCountTests(unittest.TestCase):
         self.assertEqual((result.returncode, result.stdout), (0, "Updates unavailable\n"))
 
     def test_aur_status_two_is_not_official_no_updates(self):
-        self.provider("yay", status=2)
+        self.provider("paru", status=2)
         result = self.run_script()
         self.assertEqual((result.returncode, result.stdout), (0, "Updates unavailable\n"))
 
@@ -107,13 +107,13 @@ class UpdateCountTests(unittest.TestCase):
 
     def test_aur_mode_requires_only_aur_and_preserves_icon(self):
         (self.bin / "checkupdates").unlink()
-        self.provider("yay", "one 1 -> 2\ntwo 3 -> 4\n")
+        self.provider("paru", "one 1 -> 2\ntwo 3 -> 4\n")
         result = self.run_script("aur")
         self.assertEqual((result.returncode, result.stdout), (0, " 2\n"))
-        self.assertEqual(self.calls.read_text().splitlines(), ["yay"])
+        self.assertEqual(self.calls.read_text().splitlines(), ["paru"])
 
     def test_official_mode_requires_only_official_and_preserves_zero_icon(self):
-        (self.bin / "yay").unlink()
+        (self.bin / "paru").unlink()
         self.provider("checkupdates", status=2)
         result = self.run_script("official")
         self.assertEqual((result.returncode, result.stdout), (0, " 0\n"))
@@ -125,7 +125,7 @@ class UpdateCountTests(unittest.TestCase):
         self.assertEqual((result.returncode, result.stdout), (0, " 2\n"))
 
     def test_named_mode_failed_provider_is_unavailable(self):
-        self.provider("yay", status=1)
+        self.provider("paru", status=1)
         result = self.run_script("aur")
         self.assertEqual((result.returncode, result.stdout), (0, "Updates unavailable\n"))
 
@@ -135,7 +135,7 @@ class UpdateCountTests(unittest.TestCase):
         self.assertEqual((result.returncode, result.stdout), (0, "Updates unavailable\n"))
 
     def test_successful_aur_query_with_blank_line_is_not_a_count(self):
-        self.provider("yay", "aur-pkg 1 -> 2\n\nother-pkg 1 -> 2\n")
+        self.provider("paru", "aur-pkg 1 -> 2\n\nother-pkg 1 -> 2\n")
         result = self.run_script("aur")
         self.assertEqual((result.returncode, result.stdout), (0, "Updates unavailable\n"))
 

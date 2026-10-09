@@ -23,7 +23,7 @@ class UpdateActionTests(unittest.TestCase):
         # The fake terminal only records argv; it cannot interpret or execute the payload.
         self.fake("ghostty", 'printf "%s\\n" "$@" > "$WAYBAR_TEST_LAUNCH_CALLS"')
         self.fake("kitty", 'printf "%s\\n" "$@" > "$WAYBAR_TEST_QUERY_CALLS"')
-        self.fake("yay", 'printf "yay\\n" >> "$WAYBAR_TEST_QUERY_CALLS"')
+        self.fake("paru", 'printf "paru\\n" >> "$WAYBAR_TEST_QUERY_CALLS"')
         self.fake("checkupdates", 'printf "checkupdates\\n" >> "$WAYBAR_TEST_QUERY_CALLS"')
         self.fake("sh", 'printf "sh\\n" >> "$WAYBAR_TEST_QUERY_CALLS"')
 
@@ -50,7 +50,7 @@ class UpdateActionTests(unittest.TestCase):
         self.assertEqual((result.returncode, result.stdout), (0, ""))
         self.assertEqual(
             self.launch_calls.read_text(encoding="utf-8").splitlines(),
-            ["--title=update-sys", "-e", "sh", "-c", "yay -Syu"],
+            ["--title=update-sys", "-e", "sh", "-c", "paru -Syu"],
         )
         self.assertFalse(self.query_calls.exists(), "neither providers nor Kitty may be invoked")
 
@@ -63,7 +63,7 @@ class UpdateActionTests(unittest.TestCase):
 
     def test_non_arch_update_does_nothing_even_without_prerequisites(self):
         self.marker.unlink()
-        (self.bin / "yay").unlink()
+        (self.bin / "paru").unlink()
         (self.bin / "ghostty").unlink()
         result = self.run_script()
         self.assertEqual((result.returncode, result.stdout, result.stderr), (0, "", ""))
@@ -77,10 +77,10 @@ class UpdateActionTests(unittest.TestCase):
         self.assertFalse(self.query_calls.exists())
 
     def test_missing_upgrade_provider_does_not_launch_a_terminal(self):
-        (self.bin / "yay").unlink()
+        (self.bin / "paru").unlink()
         result = self.run_script()
         self.assertNotEqual(result.returncode, 0)
-        self.assertIn("yay", result.stderr)
+        self.assertIn("paru", result.stderr)
         self.assertFalse(self.launch_calls.exists())
         self.assertFalse(self.query_calls.exists())
 
@@ -106,7 +106,7 @@ class UpdateActionTests(unittest.TestCase):
         result = self.run_script()
         self.assertEqual(result.returncode, 23)
         self.assertIn("Ghostty launch failed", result.stderr)
-        self.assertEqual(self.launch_calls.read_text(encoding="utf-8").splitlines()[-1], "yay -Syu")
+        self.assertEqual(self.launch_calls.read_text(encoding="utf-8").splitlines()[-1], "paru -Syu")
         self.assertFalse(self.query_calls.exists())
 
 

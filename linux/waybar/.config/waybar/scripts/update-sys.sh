@@ -9,8 +9,8 @@ if [ ! -f "${WAYBAR_ARCH_RELEASE_FILE:-/etc/arch-release}" ]; then
 fi
 
 if [ "$1" = "update" ]; then
-    if ! command -v yay >/dev/null 2>&1; then
-        printf 'Cannot launch updates: yay is unavailable\n' >&2
+    if ! command -v paru >/dev/null 2>&1; then
+        printf 'Cannot launch updates: paru is unavailable\n' >&2
         exit 1
     fi
     if ! command -v sh >/dev/null 2>&1; then
@@ -21,7 +21,7 @@ if [ "$1" = "update" ]; then
         printf 'Cannot launch updates: Ghostty is unavailable\n' >&2
         exit 1
     fi
-    ghostty --title=update-sys -e sh -c 'yay -Syu'
+    ghostty --title=update-sys -e sh -c 'paru -Syu'
     status=$?
     if ((status != 0)); then
         printf 'Ghostty launch failed (status %s)\n' "$status" >&2
@@ -52,8 +52,8 @@ case $1 in
 esac
 
 if [[ $1 != official ]]; then
-    command -v yay >/dev/null 2>&1 || unavailable
-    listing=$(yay -Qua)
+    command -v paru >/dev/null 2>&1 || unavailable
+    listing=$(paru -Qua)
     status=$?
     ((status == 0)) && count_list "$listing" || unavailable
     AUR=$COUNT
