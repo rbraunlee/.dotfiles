@@ -13,3 +13,12 @@ environment group and Stow package; preserve unrelated configuration and history
 Root documentation under `docs/` is local-only under the existing ignore policy.
 Ignored or uncommitted planning inputs must be supplied explicitly to generated
 worktrees; do not assume they are present in a checkout of the baseline commit.
+
+Before reporting status or planning further work, read the **full** relevant feature
+decision records (including later appended entries), locate the canonical execution
+tracker or preserved archive named there, and reconcile its tickets and handoff with
+actual Git branches, worktrees, ancestry and current checkout state. Historical
+approval/spec/graph headers and old handoffs describe their time of writing, not
+necessarily today's status. Keep human QA/acceptance distinct from automated gates
+and integration; if the evidence conflicts or is missing, report uncertainty rather
+than inferring completion.
