@@ -149,6 +149,66 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
         done
     }
 
+    # Generate unprivileged output first; stage as root in the mirrorlist's
+    # directory so the final rename cannot cross filesystem boundaries.
+    _mirror_select() {
+        local generator=$1
+        shift
+        (( $# )) || { print -u2 -- 'mirror: missing selector'; return 2; }
+        _arch_require "$generator" sudo mktemp rm || return $?
+        local target=/etc/pacman.d/mirrorlist
+        local candidate stage
+        candidate=$(command mktemp "${TMPDIR:-/tmp}/zsh-mirror-candidate.XXXXXXXX") || {
+            print -u2 -- 'mirror: unable to create candidate'; return 1
+        }
+        if ! command "$generator" "$@" > "$candidate" || [[ ! -s $candidate || ! -r $candidate ]]; then
+            print -u2 -- 'mirror: generator failed or candidate is empty/unreadable'
+            command rm -f -- "$candidate" || print -u2 -- 'mirror: candidate cleanup failed'
+            return 1
+        fi
+        if ! command sudo cp -p -- "$target" "${target}.backup"; then
+            print -u2 -- 'mirror: backup failed'
+            command rm -f -- "$candidate" || print -u2 -- 'mirror: candidate cleanup failed'
+            return 1
+        fi
+        stage=$(command sudo mktemp "${target}.XXXXXXXX") || {
+            print -u2 -- 'mirror: privileged staging failed'
+            command rm -f -- "$candidate" || print -u2 -- 'mirror: candidate cleanup failed'
+            return 1
+        }
+        # Reject unexpected sudo output before using it as a privileged path.
+        local stage_pattern='^/etc/pacman[.]d/mirrorlist[.][[:alnum:]]{8}$'
+        if [[ ! $stage =~ $stage_pattern ]]; then
+            print -u2 -- 'mirror: unexpected staging path'
+            command rm -f -- "$candidate" || print -u2 -- 'mirror: candidate cleanup failed'
+            return 1
+        fi
+        if ! command sudo install -m 644 -- "$candidate" "$stage"; then
+            print -u2 -- 'mirror: privileged staging write failed'
+            command sudo rm -f -- "$stage" || print -u2 -- 'mirror: staging cleanup failed'
+            command rm -f -- "$candidate" || print -u2 -- 'mirror: candidate cleanup failed'
+            return 1
+        fi
+        if ! command sudo mv -f -T -- "$stage" "$target"; then
+            print -u2 -- 'mirror: atomic publication failed'
+            command sudo rm -f -- "$stage" || print -u2 -- 'mirror: staging cleanup failed'
+            command rm -f -- "$candidate" || print -u2 -- 'mirror: candidate cleanup failed'
+            return 1
+        fi
+        if ! command rm -f -- "$candidate"; then
+            print -u2 -- 'mirror: candidate cleanup failed'
+            return 1
+        fi
+    }
+    mirror() { (( $# == 0 )) || { print -u2 -- 'mirror: takes no arguments'; return 2; }; _mirror_select reflector -f 30 -l 30 --number 10 --verbose; }
+    mirrord() { (( $# == 0 )) || { print -u2 -- 'mirrord: takes no arguments'; return 2; }; _mirror_select reflector --latest 30 --number 10 --sort delay; }
+    mirrors() { (( $# == 0 )) || { print -u2 -- 'mirrors: takes no arguments'; return 2; }; _mirror_select reflector --latest 30 --number 10 --sort score; }
+    mirrora() { (( $# == 0 )) || { print -u2 -- 'mirrora: takes no arguments'; return 2; }; _mirror_select reflector --latest 30 --number 10 --sort age; }
+    mirrorx() { (( $# == 0 )) || { print -u2 -- 'mirrorx: takes no arguments'; return 2; }; _mirror_select reflector --age 6 --latest 20 --fastest 20 --threads 5 --sort rate --protocol https; }
+    mirrorxx() { (( $# == 0 )) || { print -u2 -- 'mirrorxx: takes no arguments'; return 2; }; _mirror_select reflector --age 6 --latest 20 --fastest 20 --threads 20 --sort rate --protocol https; }
+    ram() { (( $# == 0 )) || { print -u2 -- 'ram: takes no arguments'; return 2; }; _mirror_select rate-mirrors --allow-root --disable-comments arch; }
+    rams() { (( $# == 0 )) || { print -u2 -- 'rams: takes no arguments'; return 2; }; _mirror_select rate-mirrors --allow-root --disable-comments --protocol https arch; }
+
     sps() {
         _arch_package_args "$@" || return $?
         _arch_require sudo pacman || return $?
