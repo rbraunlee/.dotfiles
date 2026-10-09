@@ -177,6 +177,16 @@ class RuntimeTests(unittest.TestCase):
                         "git diff --output=example", "git log --output=example"):
             self.assertEqual(effect(reviewer, "shell", command), "deny")
 
+    def test_manual_reads_are_allowed_across_roles(self):
+        for name in (path.stem for path in (CONFIG / "agents").glob("*.md")):
+            for command in ("man ghostty", "man 5 ghostty", "man tmux",
+                            "MANPAGER=cat PAGER=cat man ghostty",
+                            "MANPAGER=cat PAGER=cat man 5 ghostty"):
+                self.assertEqual(effect(self.agents[name], "shell", command), "allow",
+                                 f"{name}: {command}")
+        for command in ("sh -c 'man ghostty'", "MANPAGER=sh PAGER=sh man ghostty"):
+            self.assertEqual(effect(self.agents["reviewer"], "shell", command), "deny")
+
     def test_protected_actions_and_paths(self):
         for name in ("orchestrator", "builder", "merger", "tester", "reviewer", "planner"):
             agent = self.agents[name]

@@ -62,3 +62,20 @@ the active workflow; historical revisions remain available in Git.
   human inspection with exact references and a QA checklist.
 - **Human QA**: The user's assessment of intent, usability and the finished outcome,
   distinct from automated checks and independent code review.
+
+## Dotfiles cleanup planning
+
+- **Environment group**: A repository grouping for configuration applicability:
+  `common` for cross-platform configuration and `linux` for Linux-specific
+  configuration. A group is not an isolated running environment.
+- **Stow package**: One independently deployable configuration directory under an
+  environment group, mirroring paths in the user's home directory.
+- **Package key**: The pair of environment group and Stow package, such as
+  `common/zsh` or `linux/zsh`; matching package names in different groups do not
+  identify the same package.
+- **Cleanup feature**: A behavior-preserving improvement owned by exactly one
+  package key, with its own spec, tickets, approval and completion record.
+  Cross-package dependencies do not combine features or authorize changes to
+  another package.
+- **Cleanup candidate**: An audit proposal requiring validation and an agreed
+  intended outcome before it becomes an implementation requirement.

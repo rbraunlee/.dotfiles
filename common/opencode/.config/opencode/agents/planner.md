@@ -62,6 +62,12 @@ permissions:
     resource: "*"
     effect: ask
   - action: shell
+    resource: "man *"
+    effect: allow
+  - action: shell
+    resource: "MANPAGER=cat PAGER=cat man *"
+    effect: allow
+  - action: shell
     resource: "git status *"
     effect: allow
   - action: shell

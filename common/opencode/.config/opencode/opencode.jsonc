@@ -38,6 +38,9 @@
     { "action": "shell", "resource": "git status *", "effect": "allow" },
     { "action": "shell", "resource": "git diff *", "effect": "allow" },
     { "action": "shell", "resource": "git log *", "effect": "allow" },
+    // Manual reads; restrictive agents repeat these after their shell deny/ask.
+    { "action": "shell", "resource": "man *", "effect": "allow" },
+    { "action": "shell", "resource": "MANPAGER=cat PAGER=cat man *", "effect": "allow" },
     { "action": "shell", "resource": "git push *", "effect": "ask" },
     { "action": "shell", "resource": "gh pr create *", "effect": "ask" },
     { "action": "shell", "resource": "gh pr merge *", "effect": "deny" },

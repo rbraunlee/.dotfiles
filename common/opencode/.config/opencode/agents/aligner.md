@@ -6,6 +6,12 @@ permissions:
   - action: shell
     resource: "*"
     effect: deny
+  - action: shell
+    resource: "man *"
+    effect: allow
+  - action: shell
+    resource: "MANPAGER=cat PAGER=cat man *"
+    effect: allow
   - action: edit
     resource: "*"
     effect: deny
