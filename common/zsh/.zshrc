@@ -127,6 +127,128 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
     alias pacman="sudo pacman"
     export MOZ_ENABLE_WAYLAND=1
 
+    # Resolve providers at invocation, not startup. `command pacman` bypasses
+    # the interactive pacman=sudo alias for every read-only query.
+    _arch_require() {
+        local provider
+        for provider in "$@"; do
+            if ! whence -p -- "$provider" >/dev/null 2>&1; then
+                print -u2 -- "Arch helper: required command not found: $provider"
+                return 127
+            fi
+        done
+    }
+    _arch_package_args() {
+        local package
+        (( $# )) || { print -u2 -- 'Arch helper: expected a package'; return 2; }
+        for package in "$@"; do
+            if [[ -z $package || $package == -* ]]; then
+                print -u2 -- 'Arch helper: expected package names, not options'
+                return 2
+            fi
+        done
+    }
+
+    sps() {
+        _arch_package_args "$@" || return $?
+        _arch_require sudo pacman || return $?
+        command sudo pacman -S "$@"
+    }
+    spr() {
+        _arch_package_args "$@" || return $?
+        _arch_require sudo pacman || return $?
+        command sudo pacman -R "$@"
+    }
+    sprs() {
+        _arch_package_args "$@" || return $?
+        _arch_require sudo pacman || return $?
+        command sudo pacman -Rs "$@"
+    }
+    spqo() {
+        (( $# )) || { print -u2 -- 'spqo: expected a path'; return 2; }
+        _arch_require pacman || return $?
+        command pacman -Qo -- "$@"
+    }
+    spsii() {
+        (( $# )) || { print -u2 -- 'spsii: expected a package'; return 2; }
+        _arch_require pacman || return $?
+        command pacman -Sii -- "$@"
+    }
+    depends() {
+        (( $# == 1 )) && [[ -n $1 ]] || { print -u2 -- 'depends: expected one package'; return 2; }
+        _arch_require pacman || return $?
+        local info
+        info=$(command pacman -Sii -- "$1") || return $?
+        local line
+        for line in "${(@f)info}"; do
+            if [[ $line == 'Required By '* ]]; then
+                print -r -- "${line#*: }"
+            fi
+        done
+    }
+    list() {
+        _arch_require pacman || return $?
+        command pacman -Qqe "$@"
+    }
+    listt() {
+        _arch_require pacman || return $?
+        command pacman -Qqet "$@"
+    }
+    listaur() {
+        _arch_require pacman || return $?
+        command pacman -Qqem "$@"
+    }
+    update() {
+        (( $# == 0 )) || { print -u2 -- 'update: takes no arguments'; return 2; }
+        _arch_require sudo pacman || return $?
+        command sudo pacman -Syu
+    }
+    upall() {
+        (( $# == 0 )) || { print -u2 -- 'upall: takes no arguments'; return 2; }
+        _arch_require paru || return $?
+        command paru -Syu
+    }
+    upd() { update "$@"; }
+    upa() { upall "$@"; }
+    cleanup() {
+        (( $# == 0 )) || { print -u2 -- 'cleanup: takes no arguments'; return 2; }
+        _arch_require pacman || return $?
+        local orphans query_status
+        orphans=$(command pacman -Qtdq)
+        query_status=$?
+        # Pacman returns 1 when there are no matching packages. Other errors
+        # must not be mistaken for an empty orphan list.
+        if (( query_status != 0 )) && { (( query_status != 1 )) || [[ -n $orphans ]]; }; then
+            print -u2 -- "cleanup: orphan query failed (status $query_status)"
+            return $query_status
+        fi
+        [[ -n $orphans ]] || { print -r -- 'cleanup: no orphans'; return 0; }
+        _arch_require sudo || return $?
+        local -a packages
+        packages=( "${(@f)orphans}" )
+        command sudo pacman -Rns -- "${packages[@]}"
+    }
+    rip() {
+        (( $# == 0 )) || { print -u2 -- 'rip: takes no arguments'; return 2; }
+        _arch_require expac sort tail nl || return $?
+        setopt localoptions pipefail
+        command expac '--timefmt=%Y-%m-%d %T' '%l\t%n %v' |
+            command sort | command tail -200 | command nl
+    }
+    riplong() {
+        (( $# == 0 )) || { print -u2 -- 'riplong: takes no arguments'; return 2; }
+        _arch_require expac sort tail nl || return $?
+        setopt localoptions pipefail
+        command expac '--timefmt=%Y-%m-%d %T' '%l\t%n %v' |
+            command sort | command tail -3000 | command nl
+    }
+    big() {
+        (( $# == 0 )) || { print -u2 -- 'big: takes no arguments'; return 2; }
+        _arch_require expac sort nl || return $?
+        setopt localoptions pipefail
+        command expac -H M '%m\t%n' | command sort -h | command nl
+    }
+
     alias free='free -mt'
     alias psa='ps auxf'
     alias jctl='journalctl -p 3 -xb'
