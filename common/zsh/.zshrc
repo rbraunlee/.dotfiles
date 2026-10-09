@@ -14,6 +14,38 @@ fi
 autoload -Uz compinit && compinit
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
 
+# Defaults apply only when the caller has not made a usable selection. Zsh
+# records multiline commands as one history entry without Bash's cmdhist.
+: ${EDITOR:=nvim}
+: ${VISUAL:=$EDITOR}
+: ${HISTFILE:=$HOME/.zsh_history}
+# Zsh initializes HISTSIZE to 30 even under -f; replace that small built-in
+# default while leaving other caller-selected sizes alone.
+if [[ $HISTSIZE -eq 30 ]]; then HISTSIZE=10000; fi
+# SAVEHIST is also an integer-special parameter, initialized to zero.
+if [[ $SAVEHIST -eq 0 ]]; then SAVEHIST=10000; fi
+export EDITOR VISUAL
+setopt APPEND_HISTORY HIST_IGNORE_ALL_DUPS HIST_IGNORE_SPACE HIST_SAVE_NO_DUPS
+
+# Honor an installed caller-selected toolkit. Only choose the conventional
+# system location when no CUDA_HOME was selected; never add a missing toolkit.
+if [[ -z $CUDA_HOME && -d /opt/cuda/bin ]]; then
+    export CUDA_HOME=/opt/cuda
+fi
+if [[ -n $CUDA_HOME && -d "$CUDA_HOME/bin" && ${path[(Ie)$CUDA_HOME/bin]} -eq 0 ]]; then
+    path=( "$CUDA_HOME/bin" $path )
+fi
+
+# Keep the caller's existing PATH order, including on repeated `reload`.
+() {
+    local user_bin
+    for user_bin in "$HOME/.bin" "$HOME/.local/bin"; do
+        if [[ -d "$user_bin" && ${path[(Ie)$user_bin]} -eq 0 ]]; then
+            path=( "$user_bin" $path )
+        fi
+    done
+}
+
 alias v="nvim"
 alias vim="nvim"
 alias reload="source ~/.zshrc"
