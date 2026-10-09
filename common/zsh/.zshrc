@@ -50,6 +50,53 @@ alias v="nvim"
 alias vim="nvim"
 alias reload="source ~/.zshrc"
 
+# Everyday portable listings and disk space.
+alias la='ls -a'
+alias ll='ls -alFh'
+alias df='df -h'
+
+# Extract one existing archive in the current directory. This is not a sandbox:
+# only open archives from trusted sources (archive members may escape the cwd).
+ex() {
+    if (( $# != 1 )); then
+        print -u2 -- 'ex: expected exactly one archive filename'
+        return 2
+    fi
+    if [[ ! -f $1 ]]; then
+        print -u2 -- "ex: expected an existing archive file: $1"
+        return 2
+    fi
+
+    # Prefix option-looking relative filenames rather than assuming every
+    # extractor supports -- (notably ar, unrar, 7z and older unzip versions).
+    local archive=$1 tool exit_code
+    [[ $archive == -* ]] && archive=./$archive
+    local -a flags
+    case $archive in
+        (*.tar.bz2|*.tbz2) tool=tar; flags=(xjf) ;;
+        (*.tar.gz|*.tgz)   tool=tar; flags=(xzf) ;;
+        (*.tar|*.tar.xz|*.tar.zst) tool=tar; flags=(xf) ;;
+        (*.bz2) tool=bunzip2 ;;
+        (*.rar) tool=unrar; flags=(x) ;;
+        (*.gz)  tool=gunzip ;;
+        (*.zip) tool=unzip ;;
+        (*.Z)   tool=uncompress ;;
+        (*.7z)  tool=7z; flags=(x) ;;
+        (*.deb) tool=ar; flags=(x) ;;
+        (*) print -u2 -- "ex: unsupported archive type: $1"; return 2 ;;
+    esac
+    if ! command -v "$tool" >/dev/null 2>&1; then
+        print -u2 -- "ex: required extractor not found: $tool"
+        return 127
+    fi
+    command "$tool" "${flags[@]}" "$archive"
+    exit_code=$?
+    if (( exit_code )); then
+        print -u2 -- "ex: $tool failed for $1 (status $exit_code)"
+    fi
+    return $exit_code
+}
+
 export GPG_TTY=$(tty)
 
 # --- 3. OS-Specific Conditional Logic ---
@@ -78,6 +125,33 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
     # --- Arch/Linux Configs ---
     alias pacman="sudo pacman"
     export MOZ_ENABLE_WAYLAND=1
+
+    alias free='free -mt'
+    alias psa='ps auxf'
+    alias jctl='journalctl -p 3 -xb'
+    alias sysfailed='systemctl list-units --failed'
+
+    psgrep() {
+        setopt localoptions pipefail
+        if (( $# != 1 )) || [[ -z $1 ]]; then
+            print -u2 -- 'psgrep: expected one process name'
+            return 2
+        fi
+        if ! command -v ps >/dev/null || ! command -v grep >/dev/null; then
+            print -u2 -- 'psgrep: requires ps and grep'
+            return 127
+        fi
+        command ps aux | command grep -i -F -e VSZ -e "$1"
+    }
+
+    audio() {
+        setopt localoptions pipefail
+        if ! command -v pactl >/dev/null || ! command -v grep >/dev/null; then
+            print -u2 -- 'audio: requires pactl and grep'
+            return 127
+        fi
+        command pactl info | command grep -F 'Server Name'
+    }
 fi
 
 # --- 4. External Loaders ---
