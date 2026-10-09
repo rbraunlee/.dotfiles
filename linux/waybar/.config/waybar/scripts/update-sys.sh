@@ -8,12 +8,25 @@ if [ ! -f "${WAYBAR_ARCH_RELEASE_FILE:-/etc/arch-release}" ]; then
     exit 0
 fi
 
-# Keep the existing update action until the separate launcher ticket.
 if [ "$1" = "update" ]; then
-    AUR=$(yay -Qua | wc -l)
-    OFFICIAL=$(checkupdates | wc -l)
-    kitty --title update-sys sh -c 'yay -Syu'
-    exit 0
+    if ! command -v yay >/dev/null 2>&1; then
+        printf 'Cannot launch updates: yay is unavailable\n' >&2
+        exit 1
+    fi
+    if ! command -v sh >/dev/null 2>&1; then
+        printf 'Cannot launch updates: sh is unavailable\n' >&2
+        exit 1
+    fi
+    if ! command -v ghostty >/dev/null 2>&1; then
+        printf 'Cannot launch updates: Ghostty is unavailable\n' >&2
+        exit 1
+    fi
+    ghostty --title=update-sys -e sh -c 'yay -Syu'
+    status=$?
+    if ((status != 0)); then
+        printf 'Ghostty launch failed (status %s)\n' "$status" >&2
+    fi
+    exit "$status"
 fi
 
 # Count only provider listings, not diagnostic text emitted on stdout.
