@@ -1,0 +1,116 @@
+{
+  "repository": "https://github.com/mattpocock/skills",
+  "commit": "b0618bc436ad893b3c5e84e55fba86586d34a404",
+  "files": [
+    {
+      "upstream": "skills/engineering/setup-matt-pocock-skills/SKILL.md",
+      "installed": "setup-matt-pocock-skills/SKILL.md",
+      "sha256": "f148858ffb7f63c03c06fca06e6fdb1d91a35c6b293244b8fdfacd5f4cc028c4"
+    },
+    {
+      "upstream": "skills/engineering/setup-matt-pocock-skills/domain.md",
+      "installed": "setup-matt-pocock-skills/domain.md",
+      "sha256": "593a7042218689f1d24df89df14eaf0a20e19e0d0a7d479a01947ac78f0784b9"
+    },
+    {
+      "upstream": "skills/engineering/setup-matt-pocock-skills/issue-tracker-github.md",
+      "installed": "setup-matt-pocock-skills/issue-tracker-github.md",
+      "sha256": "f0653fe106dd8ee7b33be27bd7fe3104b40555896cb45f61997aed20467020c3"
+    },
+    {
+      "upstream": "skills/engineering/setup-matt-pocock-skills/issue-tracker-gitlab.md",
+      "installed": "setup-matt-pocock-skills/issue-tracker-gitlab.md",
+      "sha256": "591a9e7057382aaccdfbed3f7ea3f2ad07e0cd29f012d18b82ee4e485fd81e24"
+    },
+    {
+      "upstream": "skills/engineering/setup-matt-pocock-skills/issue-tracker-local.md",
+      "installed": "setup-matt-pocock-skills/issue-tracker-local.md",
+      "sha256": "7dcda20a2eb4bdc89b95d1143423c0691309921cadae3132e6424f371030506e"
+    },
+    {
+      "upstream": "skills/engineering/setup-matt-pocock-skills/triage-labels.md",
+      "installed": "setup-matt-pocock-skills/triage-labels.md",
+      "sha256": "ae512af838c78b8750471c42cd2b20fa32319553e61d84c9a23d171b40ce14aa"
+    },
+    {
+      "upstream": "skills/engineering/grill-with-docs/SKILL.md",
+      "installed": "grill-with-docs/SKILL.md",
+      "sha256": "7de372c13488f1ee96cc11cd8907b56b6809cc93eef776eeddd37de6b6cbe3fe"
+    },
+    {
+      "upstream": "skills/engineering/domain-modeling/ADR-FORMAT.md",
+      "installed": "domain-modeling/ADR-FORMAT.md",
+      "sha256": "944c92aa790e8fbdc9199640b170979abb8a34ba8d0fe18c2a01a63bce140ca0"
+    },
+    {
+      "upstream": "skills/engineering/domain-modeling/GLOSSARY-FORMAT.md",
+      "installed": "domain-modeling/GLOSSARY-FORMAT.md",
+      "sha256": "21dcc40cdec8e151a829b98ab1517c1867bc444e3665134a98c6983411996801"
+    },
+    {
+      "upstream": "skills/engineering/domain-modeling/SKILL.md",
+      "installed": "domain-modeling/SKILL.md",
+      "sha256": "7b925d7b1e341a2eeae33ad68a8a8c0ab889a38ddd22a7598e4c240e5a7556a3"
+    },
+    {
+      "upstream": "skills/engineering/to-spec/SKILL.md",
+      "installed": "to-spec/SKILL.md",
+      "sha256": "43ad9cf318e5e7d3d1fa360253a37021796dc87a0c2e595ad262661a10f85088"
+    },
+    {
+      "upstream": "skills/engineering/to-tickets/SKILL.md",
+      "installed": "to-tickets/SKILL.md",
+      "sha256": "56ec23c5b2782785d4e65bff9e315b6d3aeb4ef977c174a219e99489fada1995"
+    },
+    {
+      "upstream": "skills/engineering/implement/SKILL.md",
+      "installed": "implement/SKILL.md",
+      "sha256": "483bdc4ccf4ac31d86ac7beeaa0d0db80313e71e120bb8c59b3196ae5decd53d"
+    },
+    {
+      "upstream": "skills/engineering/implement-spec/SKILL.md",
+      "installed": "implement-spec/SKILL.md",
+      "sha256": "7a22dd2e60b8fcece478ced9d2533582adf3520d695acd3ab715341535c9e56d"
+    },
+    {
+      "upstream": "skills/engineering/tdd/SKILL.md",
+      "installed": "tdd/SKILL.md",
+      "sha256": "5505d25bbaa8fc14a79e4d20163936958992a2995b7f1dd1d6197edc9ed722e0"
+    },
+    {
+      "upstream": "skills/engineering/tdd/mocking.md",
+      "installed": "tdd/mocking.md",
+      "sha256": "3ceb807fdf4a47d6a93d4d9a891e5ba6d362a6247bd08adc451feebfc17361ef"
+    },
+    {
+      "upstream": "skills/engineering/tdd/tests.md",
+      "installed": "tdd/tests.md",
+      "sha256": "859f9e592c188fda4fc7277dd180e4ce9c7a2e13f6efe1f6f29eccc9d28c106a"
+    },
+    {
+      "upstream": "skills/engineering/code-review/SKILL.md",
+      "installed": "code-review/SKILL.md",
+      "sha256": "09eb147f793e4647949edd32dbad278f0554dfb56e0d46b699cd4c2c55bf0357"
+    },
+    {
+      "upstream": "skills/engineering/codebase-design/DEEPENING.md",
+      "installed": "codebase-design/DEEPENING.md",
+      "sha256": "f3dd099ce99289bd213914d8ee3e2429b78309c3957ca4583f7659551b1d53c1"
+    },
+    {
+      "upstream": "skills/engineering/codebase-design/DESIGN-IT-TWICE.md",
+      "installed": "codebase-design/DESIGN-IT-TWICE.md",
+      "sha256": "52b52e75655a27aea59c6966b410bac82448968ad46ef1ebb9f07c274e3ae010"
+    },
+    {
+      "upstream": "skills/engineering/codebase-design/SKILL.md",
+      "installed": "codebase-design/SKILL.md",
+      "sha256": "2c20617f87ec8af6a434859f381b2f061a69b530444e74eb39e78bb016a6d1e2"
+    },
+    {
+      "upstream": "skills/productivity/grilling/SKILL.md",
+      "installed": "grilling/SKILL.md",
+      "sha256": "befdff1e27a1dfe2a294d5871169ac1afe16d983911daa4f32627514a48c1e15"
+    }
+  ]
+}

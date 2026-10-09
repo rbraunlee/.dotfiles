@@ -134,6 +134,23 @@ stow -R -t ~ -d common nvim
 
 ## Notes
 
+### OpenCode feature delivery
+
+The `opencode` package provides skill-driven planning and trusted-local feature
+delivery. Start with `/setup-matt-pocock-skills` once per project, then use
+`/implement` for a bounded change or `/implement-spec <approved-spec>` for a ticket
+graph. See [usage and verification status](docs/workflow-adoption.md). Agents leave
+final QA and the merge into `main` to you; worktrees are not security sandboxes.
+
+Run the package's configuration regression checks from the repository root:
+
+```bash
+python3 -m unittest discover -s common/opencode/.config/opencode/tests -v
+```
+
+Runtime checks require OpenCode and the `opencode` package to be stowed. The checks
+make no model calls and do not mutate project files.
+
 ### Nerd Fonts
 
 **macOS:** `brew install font-comic-shanns-mono-nerd-font`
@@ -147,5 +164,3 @@ git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 ```
 
 Open tmux and press `prefix + I` to install plugins.
-
-

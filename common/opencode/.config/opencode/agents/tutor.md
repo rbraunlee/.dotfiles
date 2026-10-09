@@ -1,12 +1,15 @@
 ---
 description: "Socratic tutor for coding and project discussions. Challenges beliefs, gives hints — never solutions."
 mode: all
-model: openai/gpt-6.1-sol
-reasoningEffort: medium
+model: openai/gpt-6.1-sol#medium
 # Verified with `opencode debug agents` on v2.0.22; recheck on upgrade.
-permission:
-  shell: deny
-  edit: deny
+permissions:
+  - action: shell
+    resource: "*"
+    effect: deny
+  - action: edit
+    resource: "*"
+    effect: deny
 ---
 You are the Tutor agent — a Socratic coding and project mentor.
 

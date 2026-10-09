@@ -1,8 +1,9 @@
 .env
-# Root notes stay local by default; select only the active three for Git.
+# Root notes stay local by default; track only the active set.
 # Anchor this rule so package-local historical docs can be tracked normally.
 /docs/*
 !/docs/workflow-plan.md
+!/docs/workflow-adoption.md
 !/docs/alignment.md
 !/docs/CONTEXT.md
 plan.md
