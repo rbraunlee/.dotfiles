@@ -29,28 +29,53 @@ return {
       "vimdoc",
     }
 
-    local filetypes = { "bash", "c", "html", "json", "lua", "markdown", "python", "vim" }
-
-    local langs = {
+    -- Filetypes and parser names are not interchangeable (notably sh and help).
+    local languages = {
       bash = "bash",
       c = "c",
+      help = "vimdoc",
       html = "html",
       json = "json",
       lua = "lua",
-      markdown = { "markdown", "markdown_inline" },
+      markdown = "markdown", -- markdown_inline runs through injections
       python = "python",
+      query = "query",
+      sh = "bash",
       vim = "vim",
-      vimdoc = "vimdoc",
     }
+
+    local treesitter = require("nvim-treesitter")
+    local function attach(buf)
+      if not vim.api.nvim_buf_is_valid(buf) or not vim.api.nvim_buf_is_loaded(buf) then
+        return
+      end
+      local language = languages[vim.bo[buf].filetype]
+      if not language then
+        return
+      end
+      local installed = {}
+      for _, name in ipairs(treesitter.get_installed("parsers")) do
+        installed[name] = true
+      end
+      if not installed[language] then
+        return
+      end
+      if pcall(vim.treesitter.start, buf, language)
+        and vim.api.nvim_buf_is_valid(buf)
+        and vim.api.nvim_buf_is_loaded(buf)
+        and languages[vim.bo[buf].filetype] == language
+      then
+        vim.bo[buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+      end
+    end
 
     -- Highlighting and indentation are per buffer, not global, so attach them
     -- to FileType rather than calling start() once at startup.
     vim.api.nvim_create_autocmd("FileType", {
       group = vim.api.nvim_create_augroup("nvim-treesitter", { clear = true }),
-      pattern = filetypes,
+      pattern = vim.tbl_keys(languages),
       callback = function(args)
-        vim.bo[args.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
-        pcall(vim.treesitter.start, args.buf, langs)
+        attach(args.buf)
       end,
     })
 
@@ -73,11 +98,15 @@ return {
     if #missing > 0 then
       -- install() is asynchronous: it returns a task and yields while
       -- downloading and compiling. Blocking here would freeze startup on the
-      -- first run, so let it finish in the background and pick up the current
-      -- buffer once it has.
-      require("nvim-treesitter").install(missing):await(function()
-        vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
-        pcall(vim.treesitter.start, 0, langs)
+      -- first run. Recheck each eligible buffer after completion rather than
+      -- writing to whichever buffer happens to be current at that moment.
+      treesitter.install(missing):await(function(err)
+        if err then
+          return
+        end
+        for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+          pcall(attach, buf)
+        end
       end)
     end
   end,
