@@ -105,7 +105,7 @@
     },
 
     "network": {
-        "format-wireless": " {essid}", // Wifi icon
+        "format-wifi": " {essid}", // Wifi icon
         "format-ethernet": "󰈀 {ifname}", // Ethernet icon
         "format-disconnected": "󰤮 Disconnected", // Disconnected icon
         "tooltip": true
