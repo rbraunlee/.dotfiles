@@ -15,7 +15,7 @@ hl.monitor({ output = "", mode = "preferred", position = "auto", scale = "auto" 
 local terminal    = "ghostty"
 local fileManager = "dolphin"
 local menu        = "wofi --show drun"
-local screenshot  = 'grim -g "$(slurp)" - | swappy -f -'
+local screenshot  = "flameshot gui"
 
 -------------------
 ---- AUTOSTART ----
