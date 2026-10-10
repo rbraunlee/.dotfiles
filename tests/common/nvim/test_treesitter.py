@@ -116,6 +116,29 @@ assert(vim.bo[md].indentexpr == 'existing_indent()')
 assert(vim.bo[sh].indentexpr == 'existing_indent()')
 """)
 
+    def test_fresh_parser_site_is_on_runtimepath_before_async_install_and_native_lookup_finds_it(self):
+        self.run_nvim("""
+local site = vim.fn.stdpath('data') .. '/site'
+assert(not vim.uv.fs_stat(site), 'fixture must begin without a parser site')
+assert(#vim.api.nvim_get_runtime_file('parser/python.so', true) == 0)
+installed.python = nil
+attach()
+assert(type(pending) == 'function', 'must not wait for installation')
+assert(vim.tbl_contains(vim.opt.runtimepath:get(), site), 'native parser path missing')
+local count = 0
+for _, path in ipairs(vim.opt.runtimepath:get()) do if path == site then count = count + 1 end end
+assert(count == 1, 'parser site should not duplicate runtimepath entries')
+local buf = buffer('python')
+assert(#started == 0 and vim.bo[buf].indentexpr == 'existing_indent()')
+vim.fn.mkdir(site .. '/parser', 'p')
+vim.fn.writefile({'fixture parser'}, site .. '/parser/python.so')
+assert(vim.deep_equal(vim.api.nvim_get_runtime_file('parser/python.so', true),
+  {site .. '/parser/python.so'}), 'native parser discovery did not see async install')
+installed.python = true
+pending(nil)
+assert(#started == 1 and started[1].buf == buf and started[1].lang == 'python')
+""")
+
     def test_successful_install_rechecks_open_buffers_not_the_current_buffer(self):
         self.run_nvim("""
 installed.python = nil

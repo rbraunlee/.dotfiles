@@ -47,6 +47,36 @@ return {
     -- [[ Configure Telescope ]]
     -- See `:help telescope` and `:help telescope.setup()`
     require('telescope').setup {
+      defaults = {
+        preview = {
+          -- Pinned Telescope 0.1.x still calls nvim-treesitter.parsers.ft_to_lang
+          -- in its preview highlighter; the pinned main rewrite removed it.
+          -- Keep the normal file preview and regex fallback, then attach via
+          -- Neovim's native parser API after Telescope has filled the buffer.
+          treesitter = false,
+          filetype_hook = function(_, buf, opts)
+            opts.preview.treesitter = false
+            local callback = opts.callback
+            opts.callback = function(preview_buf, ...)
+              if callback then callback(preview_buf, ...) end
+              local ft = opts.ft
+              if not ft or ft == '' then return end
+              vim.schedule(function()
+                if not vim.api.nvim_buf_is_valid(preview_buf) then return end
+                local lang = vim.treesitter.language.get_lang(ft) or ft
+                if #vim.api.nvim_get_runtime_file('parser/' .. lang .. '.so', false) == 0 then return end
+                if pcall(vim.treesitter.start, preview_buf, lang)
+                  and vim.api.nvim_buf_is_valid(preview_buf)
+                then
+                  -- The pinned maker installs regex syntax after its callback.
+                  vim.bo[preview_buf].syntax = ''
+                end
+              end)
+            end
+            return true
+          end,
+        },
+      },
       -- You can put your default mappings / updates / etc. in here
       --  All the info you're looking for is in `:help telescope.setup()`
       --

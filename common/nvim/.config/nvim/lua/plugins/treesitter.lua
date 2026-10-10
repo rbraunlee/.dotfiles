@@ -11,6 +11,12 @@ return {
   lazy = false,
   build = ":TSUpdate",
   config = function()
+    -- The pinned rewrite installs parsers under stdpath('data')/site. On a
+    -- fresh profile this directory does not exist when Neovim builds its
+    -- runtimepath cache; register it before an asynchronous install finishes.
+    local site = vim.fs.joinpath(vim.fn.stdpath('data'), 'site')
+    vim.fn.mkdir(site, 'p')
+    vim.opt.runtimepath:prepend(site)
     require("nvim-treesitter").setup({})
 
     local parsers = {
