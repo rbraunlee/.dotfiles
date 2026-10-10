@@ -110,6 +110,50 @@ vim.wait(100, function() return false end, 1)
 assert(#started == 0 and #pending == 1)
 """)
 
+    def test_reused_preview_drops_stale_scheduled_attachment(self):
+        self.run_nvim("""
+local scheduled = {}
+vim.schedule = function(fn) table.insert(scheduled, fn) end
+available.python = true
+local buf = vim.api.nvim_create_buf(false, true)
+local hook = preview.filetype_hook
+local function select(ft)
+  local opts = {ft = ft, preview = {treesitter = true}, callback = function(b) assert(b == buf) end}
+  assert(hook('example.' .. ft, buf, opts))
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, {ft .. ' preview'})
+  opts.callback(buf)
+  vim.bo[buf].syntax = ft -- pinned highlighter follows the callback
+end
+select('lua')
+select('python')
+assert(#scheduled == 2)
+for _, fn in ipairs(scheduled) do fn() end
+assert(#started == 1 and started[1][1] == buf and started[1][2] == 'python', vim.inspect(started))
+assert(vim.bo[buf].syntax == '', 'current parser should replace regex fallback')
+assert(vim.api.nvim_buf_get_lines(buf, 0, -1, false)[1] == 'python preview')
+""")
+
+    def test_preview_provider_failure_retains_regex_syntax_without_callback_error(self):
+        self.run_nvim("""
+local scheduled_errors = {}
+vim.schedule = function(fn)
+  local ok, err = pcall(fn)
+  if not ok then table.insert(scheduled_errors, err) end
+end
+vim.treesitter.language.get_lang = function() error('unavailable filetype provider') end
+local buf = make_preview('lua')
+assert(#started == 0 and vim.bo[buf].syntax == 'lua')
+vim.treesitter.language.get_lang = function(ft) return ft end
+vim.api.nvim_get_runtime_file = function() error('unavailable parser provider') end
+local other = make_preview('lua')
+assert(#started == 0 and vim.bo[other].syntax == 'lua')
+vim.api.nvim_get_runtime_file = function() return nil end
+local invalid = make_preview('lua')
+assert(#started == 0 and vim.bo[invalid].syntax == 'lua')
+assert(#pending == 3 and legacy_calls == 0)
+assert(#scheduled_errors == 0, vim.inspect(scheduled_errors))
+""")
+
 
 if __name__ == "__main__":
     unittest.main()

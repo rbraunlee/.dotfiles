@@ -24,6 +24,7 @@ return {
     { 'nvim-tree/nvim-web-devicons', enabled = vim.g.have_nerd_font },
   },
   config = function()
+    local preview_selection = setmetatable({}, { __mode = 'v' })
     -- Telescope is a fuzzy finder that comes with a lot of different things that
     -- it can fuzzy find! It's more than just a "file finder", it can search
     -- many different aspects of Neovim, your workspace, LSP, and more!
@@ -55,16 +56,22 @@ return {
           -- Neovim's native parser API after Telescope has filled the buffer.
           treesitter = false,
           filetype_hook = function(_, buf, opts)
+            local selection = {}
+            preview_selection[buf] = selection
             opts.preview.treesitter = false
             local callback = opts.callback
             opts.callback = function(preview_buf, ...)
               if callback then callback(preview_buf, ...) end
+              if preview_buf ~= buf or preview_selection[buf] ~= selection then return end
               local ft = opts.ft
               if not ft or ft == '' then return end
               vim.schedule(function()
-                if not vim.api.nvim_buf_is_valid(preview_buf) then return end
-                local lang = vim.treesitter.language.get_lang(ft) or ft
-                if #vim.api.nvim_get_runtime_file('parser/' .. lang .. '.so', false) == 0 then return end
+                if preview_selection[buf] ~= selection or not vim.api.nvim_buf_is_valid(buf) then return end
+                local language_ok, language = pcall(vim.treesitter.language.get_lang, ft)
+                if not language_ok then return end
+                local lang = language or ft
+                local parser_ok, parsers = pcall(vim.api.nvim_get_runtime_file, 'parser/' .. lang .. '.so', false)
+                if not parser_ok or type(parsers) ~= 'table' or #parsers == 0 then return end
                 if pcall(vim.treesitter.start, preview_buf, lang)
                   and vim.api.nvim_buf_is_valid(preview_buf)
                 then
@@ -135,10 +142,11 @@ return {
     end, { desc = '[S]earch [/] in Open Files' })
 
     -- A folded config directory resolves directly into the package; with
-    -- individual-file Stow links the init file provides the same anchor.
+    -- individual-file Stow links the init file provides the same anchor;
+    -- a linked lua subtree also anchors a local init that loads repo modules.
     local function dotfiles_root(config)
       local suffix = '/common/nvim/.config/nvim'
-      for _, source in ipairs { config, config .. '/init.lua' } do
+      for _, source in ipairs { config, config .. '/init.lua', config .. '/lua' } do
         local resolved = vim.uv.fs_realpath(source)
         local directory = source == config and resolved or (resolved and vim.fs.dirname(resolved))
         if directory and directory:sub(-#suffix) == suffix then
@@ -150,10 +158,47 @@ return {
       end
     end
 
+    -- rg keeps the active config's local ignore rules, but symlinks outside
+    -- the checkout lose the repository's .gitignore ancestry. Ask Git about
+    -- each resolved repository file; this also honors nested rules and negation
+    -- without attempting to rebase gitignore patterns onto the active path.
+    local function repository_entry_maker(config, root)
+      local make_entry = require('telescope.make_entry').gen_from_file { cwd = config }
+      local checked = {}
+      local warned = false
+      return function(path)
+        local absolute = path:sub(1, 1) == '/' and path or config .. '/' .. path
+        local resolved = vim.uv.fs_realpath(absolute)
+        if not resolved then return end
+        if resolved:sub(1, #root + 1) == root .. '/' then
+          local ignored = checked[resolved]
+          if ignored == nil then
+            vim.fn.system { 'git', '-C', root, 'check-ignore', '--no-index', '--quiet', '--', resolved }
+            local code = vim.v.shell_error
+            if code ~= 0 and code ~= 1 then
+              if not warned then
+                vim.notify('Cannot check dotfiles repository ignore rules: ' .. root, vim.log.levels.WARN)
+                warned = true
+              end
+              return -- fail closed when repository ignore checks are unavailable
+            end
+            ignored = code == 0
+            checked[resolved] = ignored
+          end
+          if ignored then return end
+        end
+        return make_entry(path)
+      end
+    end
+
     -- Keep the active config path for individual links. Telescope's `follow`
     -- makes linked files visible; its normal ignore rules remain in force.
     vim.keymap.set('n', '<leader>sn', function()
-      builtin.find_files { cwd = vim.fn.stdpath 'config', hidden = true, follow = true }
+      local config = vim.fn.stdpath 'config'
+      local options = { cwd = config, hidden = true, follow = true }
+      local root = dotfiles_root(config)
+      if root then options.entry_maker = repository_entry_maker(config, root) end
+      builtin.find_files(options)
     end, { desc = '[S]earch [N]eovim files' })
     -- Search only environment-group packages, never HOME or repository metadata.
     vim.keymap.set('n', '<leader>sc', function()

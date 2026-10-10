@@ -18,7 +18,10 @@ class ConfigurationSearch(unittest.TestCase):
         self.root = Path(self.temporary.name)
         self.repo = self.root / "relocated dotfiles"
         self.source = self.repo / "common/nvim/.config/nvim"
-        (self.repo / ".git").mkdir(parents=True)
+        self.repo.mkdir(parents=True)
+        subprocess.run(["git", "init", "-q", str(self.repo)], check=True,
+                       env={"PATH": os.defpath, "HOME": str(self.root), "GIT_CONFIG_NOSYSTEM": "1",
+                            "GIT_CONFIG_GLOBAL": os.devnull})
         for group in ("common", "linux", "macos"):
             (self.repo / group).mkdir(exist_ok=True)
         (self.source / "lua/config").mkdir(parents=True)
@@ -29,9 +32,16 @@ class ConfigurationSearch(unittest.TestCase):
         (self.repo / "macos/zsh/.config/zsh").mkdir(parents=True)
         (self.repo / "macos/zsh/.config/zsh/.zshrc").write_text("# fixture\n")
         (self.repo / "README.md").write_text("not an environment package\n")
-        (self.repo / "common/nvim/.config/nvim/private-token").write_text("ignored\n")
-        (self.repo / ".gitignore").write_text("private-token\n")
-        (self.source / ".ignore").write_text("private-token\n")
+        (self.source / "lua/config/.env").write_text("ignored from repository root\n")
+        (self.repo / ".gitignore").write_text(
+            "/common/nvim/.config/nvim/lua/config/.env\n"
+            "/common/nvim/.config/nvim/lua/config/*.token\n"
+            "!/common/nvim/.config/nvim/lua/config/public.token\n"
+        )
+        (self.source / "lua/config/restricted.token").write_text("ignored\n")
+        (self.source / "lua/config/public.token").write_text("allowed by negation\n")
+        (self.source / "lua/.gitignore").write_text("config/nested-secret\n")
+        (self.source / "lua/config/nested-secret").write_text("ignored by nested gitignore\n")
         self.config_home = self.root / "XDG_CONFIG_HOME"
         self.config_home.mkdir()
         self.config = self.config_home / "search-test"
@@ -53,6 +63,9 @@ package.preload['telescope.builtin'] = function()
   return setmetatable({find_files = function(opts) table.insert(calls, opts) end},
     {__index = function() return function() end end})
 end
+package.preload['telescope.make_entry'] = function()
+  return {gen_from_file = function() return function(path) return {value = path} end end}
+end
 local spec = dofile("""
             + repr(str(PLUGIN))
             + """ )
@@ -71,7 +84,7 @@ end
 """
             + checks
         )
-        env = {"PATH": os.defpath}
+        env = {"PATH": os.defpath, "GIT_CONFIG_NOSYSTEM": "1", "GIT_CONFIG_GLOBAL": os.devnull}
         for name in ("HOME", "XDG_DATA_HOME", "XDG_CACHE_HOME", "XDG_STATE_HOME", "XDG_RUNTIME_DIR"):
             location = self.root / name
             location.mkdir()
@@ -110,20 +123,50 @@ assert(#notices == 0)
         (self.config / "lua").mkdir()
         (self.config / "lua/config").mkdir()
         (self.config / "lua/config/keymaps.lua").symlink_to(self.source / "lua/config/keymaps.lua")
+        (self.config / "lua/config/.env").symlink_to(self.source / "lua/config/.env")
         self.run_nvim("""
 invoke('<leader>sn')
 invoke('<leader>sc')
 assert(#calls == 2, vim.inspect(calls))
 assert(calls[1].cwd == vim.fn.stdpath('config') and calls[1].follow)
+local candidates = vim.fn.systemlist({'rg', '--files', '--hidden', '-L', vim.fn.stdpath('config')})
+assert(vim.v.shell_error == 0, vim.inspect(candidates))
+local found_keymaps, found_env = false, false
+for _, candidate in ipairs(candidates) do
+  if candidate:find('keymaps.lua', 1, true) then
+    found_keymaps = calls[1].entry_maker(candidate) ~= nil
+  elseif candidate:find('lua/config/.env', 1, true) then
+    found_env = true
+    assert(calls[1].entry_maker(candidate) == nil,
+      'individual links must inherit repository-root ignores')
+  end
+end
+assert(found_keymaps and found_env, vim.inspect(candidates))
 assert(calls[2].cwd == """ + repr(str(self.repo)) + """)
 assert(#calls[2].search_dirs == 3)
+""")
+
+    def test_linked_lua_subtree_with_local_init_inherits_repository_ignore_rules(self):
+        self.config.mkdir()
+        (self.config / "init.lua").write_text("-- local config\n")
+        (self.config / "lua").symlink_to(self.source / "lua", target_is_directory=True)
+        self.run_nvim("""
+invoke('<leader>sn')
+assert(#calls == 1 and calls[1].cwd == vim.fn.stdpath('config') and calls[1].follow)
+assert(calls[1].entry_maker('lua/config/keymaps.lua'))
+assert(calls[1].entry_maker('lua/config/.env') == nil)
+invoke('<leader>sc')
+assert(#calls == 2 and calls[2].cwd == """ + repr(str(self.repo)) + """)
+assert(#notices == 0)
 """)
 
     def test_picker_scopes_reach_linked_files_but_respect_ignores_and_package_boundary(self):
         self.config.mkdir()
         (self.config / "init.lua").symlink_to(self.source / "init.lua")
         (self.config / "lua").symlink_to(self.source / "lua", target_is_directory=True)
-        (self.config / ".ignore").symlink_to(self.source / ".ignore")
+        (self.config / ".ignore").write_text("local-secret\n")
+        (self.config / "local-secret").write_text("ignored locally\n")
+        (self.config / "local-note").write_text("only active config has this\n")
         self.run_nvim("""
 local function listed(opts)
   local command = { 'rg', '--files' }
@@ -137,18 +180,32 @@ local function listed(opts)
   local code = vim.v.shell_error
   vim.cmd.cd(vim.fn.fnameescape(previous))
   assert(code == 0, vim.inspect(files))
-  return table.concat(files, '\\n')
+  local visible = {}
+  for _, file in ipairs(files) do
+    if not opts.entry_maker or opts.entry_maker(file) then table.insert(visible, file) end
+  end
+  return table.concat(visible, '\\n')
 end
 invoke('<leader>sn')
+assert(vim.fn.executable('git') == 1 and vim.fn.executable('rg') == 1)
+assert(vim.fn.system({'git', '-C', """ + repr(str(self.repo)) + """, 'check-ignore', '--no-index', '--quiet', '--',
+  """ + repr(str(self.source / 'lua/config/.env')) + """}) == '')
+assert(vim.v.shell_error == 0, 'fixture repository-only rule must ignore reachable file')
 local active = listed(calls[1])
 assert(active:find('init.lua', 1, true) and active:find('lua/config/keymaps.lua', 1, true), active)
-assert(not active:find('private-token', 1, true), active)
+assert(active:find('local-note', 1, true), active)
+assert(active:find('lua/config/public.token', 1, true), active)
+assert(not active:find('lua/config/.env', 1, true), active)
+assert(not active:find('restricted.token', 1, true), active)
+assert(not active:find('nested-secret', 1, true), active)
+assert(not active:find('local-secret', 1, true), active)
 invoke('<leader>sc')
 local packages = listed(calls[2])
 assert(packages:find('waybar/config.jsonc', 1, true), packages)
 assert(packages:find('zsh/.config/zsh/.zshrc', 1, true), packages)
 assert(packages:find('nvim/.config/nvim/init.lua', 1, true), packages)
-assert(not packages:find('private-token', 1, true), packages)
+assert(not packages:find('lua/config/.env', 1, true), packages)
+assert(not packages:find('nested-secret', 1, true), packages)
 assert(not packages:find('README.md', 1, true), packages)
 assert(not packages:find('/.git/', 1, true), packages)
 """)
