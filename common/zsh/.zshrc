@@ -50,6 +50,31 @@ alias v="nvim"
 alias vim="nvim"
 alias reload="source ~/.zshrc"
 
+# Resolve user editors only when invoked, after external loaders and later
+# interactive overrides. Zsh's = expansion splits words without evaluating
+# shell syntax in the selection (unlike eval); paths/arguments remain quoted.
+_edit_user_config() {
+    setopt localoptions noglobsubst
+    local target=$1 editor=${EDITOR:-${VISUAL:-nvim}}
+    shift
+    if [[ ! -f $target ]]; then
+        print -u2 -- "edit config: target not found: $target"
+        return 2
+    fi
+    local -a editor_words
+    editor_words=( ${=editor} )
+    local program=$editor_words[1]
+    if [[ -z $program ]] || ! whence -p -- "$program" >/dev/null 2>&1; then
+        print -u2 -- "edit config: required editor not found: $program"
+        return 127
+    fi
+    shift editor_words
+    command "$program" "${editor_words[@]}" -- "$target" "$@"
+}
+nz() { _edit_user_config "$HOME/.zshrc" "$@"; }
+nb() { _edit_user_config "$HOME/.bashrc" "$@"; }
+nf() { _edit_user_config "$HOME/.config/fish/config.fish" "$@"; }
+
 # Everyday portable listings and disk space.
 alias la='ls -a'
 alias ll='ls -alFh'
@@ -151,6 +176,88 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
     # --- Arch/Linux Configs ---
     alias pacman="sudo pacman"
     export MOZ_ENABLE_WAYLAND=1
+
+    # Btrfs inspection is opt-in; never initialize a filesystem on shell load.
+    _snapshot_require() {
+        local provider
+        for provider in "$@"; do
+            if ! whence -p -- "$provider" >/dev/null 2>&1; then
+                print -u2 -- "snapshot: required command not found: $provider"
+                return 127
+            fi
+        done
+    }
+    btrfsfs() {
+        (( $# == 0 )) || { print -u2 -- 'btrfsfs: takes no arguments'; return 2; }
+        _snapshot_require sudo btrfs || return $?
+        command sudo btrfs filesystem df /
+    }
+    btrfsli() {
+        (( $# == 0 )) || { print -u2 -- 'btrfsli: takes no arguments'; return 2; }
+        _snapshot_require sudo btrfs || return $?
+        command sudo btrfs subvolume list / -t
+    }
+    snapli() {
+        (( $# <= 1 )) && [[ ${1:-root} == root || ${1:-root} == home ]] || {
+            print -u2 -- 'snapli: expected root or home configuration'
+            return 2
+        }
+        _snapshot_require sudo snapper || return $?
+        command sudo snapper -c "${1:-root}" list
+    }
+    _snapshot_create() {
+        local config=$1
+        shift
+        (( $# <= 1 )) && { (( $# == 0 )) || [[ -n $1 ]]; } || {
+            print -u2 -- "snap$config: expected at most one nonempty description"
+            return 2
+        }
+        _snapshot_require sudo snapper || return $?
+        if (( $# )); then
+            command sudo snapper -c "$config" create -d "$1"
+        else
+            command sudo snapper -c "$config" create
+        fi
+    }
+    snapcr() { _snapshot_create root "$@"; }
+    snapch() { _snapshot_create home "$@"; }
+
+    # A single narrow existence check keeps fixed privileged edits from
+    # creating missing configuration files. sudoedit edits as the user; never
+    # run nvim (or another editor) inside sudo.
+    _config_edit_target_exists() { [[ -f $1 ]]; }
+    _edit_system_config() {
+        local target=$1
+        shift
+        (( $# == 0 )) || { print -u2 -- 'sudoedit shortcut: takes no arguments'; return 2; }
+        if ! _config_edit_target_exists "$target"; then
+            print -u2 -- "sudoedit shortcut: target not found: $target"
+            return 2
+        fi
+        if ! whence -p -- sudoedit >/dev/null 2>&1; then
+            print -u2 -- 'sudoedit shortcut: required command not found: sudoedit'
+            return 127
+        fi
+        command sudoedit -- "$target"
+    }
+    npacman() { _edit_system_config /etc/pacman.conf "$@"; }
+    nmirrorlist() { _edit_system_config /etc/pacman.d/mirrorlist "$@"; }
+    narcomirrorlist() { _edit_system_config /etc/pacman.d/arcolinux-mirrorlist "$@"; }
+    ngrub() { _edit_system_config /etc/default/grub "$@"; }
+    nmkinitcpio() { _edit_system_config /etc/mkinitcpio.conf "$@"; }
+    nfstab() { _edit_system_config /etc/fstab "$@"; }
+    nhosts() { _edit_system_config /etc/hosts "$@"; }
+    nhostname() { _edit_system_config /etc/hostname "$@"; }
+    nresolv() { _edit_system_config /etc/resolv.conf "$@"; }
+    nnsswitch() { _edit_system_config /etc/nsswitch.conf "$@"; }
+    nsamba() { _edit_system_config /etc/samba/smb.conf "$@"; }
+    ngnupgconf() { _edit_system_config /etc/pacman.d/gnupg/gpg.conf "$@"; }
+    nvconsole() { _edit_system_config /etc/vconsole.conf "$@"; }
+    nsddm() { _edit_system_config /etc/sddm.conf "$@"; }
+    nsddmk() { _edit_system_config /etc/sddm.conf.d/kde_settings.conf "$@"; }
+    nlxdm() { _edit_system_config /etc/lxdm/lxdm.conf "$@"; }
+    nlightdm() { _edit_system_config /etc/lightdm/lightdm.conf "$@"; }
+    nplymouth() { _edit_system_config /etc/plymouth/plymouthd.conf "$@"; }
 
     # Resolve providers at invocation, not startup. `command pacman` bypasses
     # the interactive pacman=sudo alias for every read-only query.
