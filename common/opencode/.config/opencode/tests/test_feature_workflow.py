@@ -148,10 +148,11 @@ def discover_agents(binary, *, fixture_parent="/tmp/opencode"):
         subprocess.run(["git", "init", "-q", str(location)], check=True,
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         for parent in location.parents:
-            # Markdown agents and other project definitions load without a JSON config.
-            # Reject the whole ancestor source directory, including dangling symlinks.
+            # V2 discovers direct config and .opencode definitions, and compatibility
+            # skills from .claude/.agents, even without an ancestor JSON config.
+            # Reject each ancestor source root, including dangling symlinks.
             if any((parent / name).exists() or (parent / name).is_symlink()
-                   for name in ("opencode.json", "opencode.jsonc", ".opencode")):
+                   for name in ("opencode.json", "opencode.jsonc", ".opencode", ".claude", ".agents")):
                 raise RuntimeError("Fixture Location has an ancestor definition source")
         config = location / ".config/opencode"
         agents = config / "agents"
@@ -315,6 +316,22 @@ class AssetTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "ancestor") as caught:
                 discover_agents("unused-fixture-binary", fixture_parent=directory)
             self.assertNotIn(sentinel, str(caught.exception))
+
+    def test_discovery_rejects_all_ancestor_config_and_compatibility_sources(self):
+        sentinel = "SYNTHETIC_CREDENTIAL_SENTINEL_COMPATIBILITY"
+        for source in ("opencode.json", "opencode.jsonc", ".claude", ".agents"):
+            with self.subTest(source=source), TemporaryDirectory(dir="/tmp/opencode") as directory:
+                root = Path(directory) / source
+                if source.startswith("."):
+                    skills = root / "skills" / "intruder"
+                    skills.mkdir(parents=True)
+                    (skills / "SKILL.md").write_text(
+                        f"---\nname: intruder\ndescription: {sentinel}\n---\nSynthetic skill\n")
+                else:
+                    root.write_text(json.dumps({"mcp": {"servers": {"fake": sentinel}}}))
+                with self.assertRaisesRegex(RuntimeError, "ancestor") as caught:
+                    discover_agents("unused-fixture-binary", fixture_parent=directory)
+                self.assertNotIn(sentinel, str(caught.exception))
 
     def test_skill_entries_and_native_agent_frontmatter(self):
         for name in REQUIRED:
