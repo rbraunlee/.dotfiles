@@ -204,6 +204,37 @@ def effect(agent, action, resource):
     return result
 
 
+def reviewer_preflight(reply, location, head, checks, *, provenance):
+    """Project only permission outcomes from an already obtained V2 agent reply.
+
+    Caller must obtain the reply at its actual assigned Location and establish
+    HEAD separately. Never return, print, persist or include the reply in errors.
+    This is a rule-model check, not a tool execution or a containment guarantee.
+    """
+    if (not isinstance(reply, dict) or not isinstance(reply.get("location"), dict)
+            or reply["location"].get("directory") != location):
+        raise AssertionError("Reviewer preflight Location mismatch")
+    record = reply.get("data")
+    if (not isinstance(record, dict) or record.get("id") != "reviewer"
+            or not isinstance(record.get("permissions"), list)
+            or not all(isinstance(rule, dict)
+                       and set(rule) == {"action", "resource", "effect"}
+                       and all(isinstance(value, str) for value in rule.values())
+                       and rule["effect"] in {"allow", "deny", "ask"}
+                       for rule in record["permissions"])):
+        raise AssertionError("Reviewer preflight invalid rule model")
+    outcomes = {}
+    for action, resource, expected in checks:
+        if expected not in {"allow", "deny"}:
+            raise AssertionError("Reviewer preflight invalid expectation")
+        result = effect({"permissions": record["permissions"]}, action, resource)
+        if result != expected:
+            raise AssertionError("Reviewer preflight rule mismatch or pending")
+        outcomes[f"{action}:{resource}"] = result
+    return {"location": location, "head": head, "rules": outcomes,
+            "provenance": provenance}
+
+
 class DiscoveryTransportTests(unittest.TestCase):
     LOCATION = "/tmp/opencode/synthetic-fixture"
     EXPECTED = {"orchestrator": ("primary", "Fixture orchestrator"),
@@ -407,12 +438,72 @@ class AssetTests(unittest.TestCase):
         self.assertTrue(matches("git push * main *", "git push origin main --force"))
         self.assertFalse(matches("git push * main *", "git push origin feature/domain-model"))
 
+    def test_preflight_rejects_wrong_location_or_denial_without_echoing_reply(self):
+        sentinel = "SYNTHETIC_CREDENTIAL_SENTINEL_PREFLIGHT"
+        rules = [{"action": "shell", "resource": "git worktree list --porcelain", "effect": "allow"}]
+        reply = {"location": {"directory": "/tmp/opencode/assigned"},
+                 "data": {"id": "reviewer", "permissions": rules, "system": sentinel}}
+        checks = (("shell", "git worktree list --porcelain", "allow"),
+                  ("shell", "git push origin main", "deny"))
+        rules.append({"action": "shell", "resource": "*", "effect": "deny"})
+        rules.append({"action": "shell", "resource": "git worktree list --porcelain", "effect": "allow"})
+        provenance = {"source": "candidate", "activation": "not verified",
+                      "integration": "not integrated"}
+        report = reviewer_preflight(reply, "/tmp/opencode/assigned", "abc123", checks,
+                                    provenance=provenance)
+        self.assertEqual(report, {"location": "/tmp/opencode/assigned", "head": "abc123",
+                                  "rules": {"shell:git worktree list --porcelain": "allow",
+                                            "shell:git push origin main": "deny"},
+                                  "provenance": provenance})
+        self.assertNotIn(sentinel, repr(report))
+        for changed in ({**reply, "location": {"directory": "/tmp/opencode/wrong"}},
+                        {**reply, "data": {"id": "reviewer", "permissions": []}},
+                        {**reply, "data": {"id": "reviewer", "permissions": sentinel}}):
+            with self.assertRaises(AssertionError) as caught:
+                reviewer_preflight(changed, "/tmp/opencode/assigned", "abc123", checks,
+                                   provenance=provenance)
+            self.assertNotIn(sentinel, str(caught.exception))
+        with self.assertRaisesRegex(AssertionError, "mismatch"):
+            reviewer_preflight(reply, "/tmp/opencode/assigned", "abc123",
+                               (("shell", "git worktree add /tmp/opencode/other HEAD", "allow"),),
+                               provenance=provenance)
+
 
 @unittest.skipUnless(shutil.which("opencode"), "OpenCode V2 required for discovery")
 class RuntimeTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.agents = discover_agents(shutil.which("opencode"))
+
+    def test_reviewer_scoped_read_only_inspection_and_safe_evidence(self):
+        reviewer = self.agents["reviewer"]
+        permitted = (
+            "pwd", "git rev-parse --show-toplevel", "git rev-parse HEAD",
+            "git worktree list --porcelain", "git merge-base --is-ancestor 668b23b HEAD",
+            "git for-each-ref --format='%(refname) %(objectname)' "
+            "refs/heads/feature/cleanup-common-nvim-20261009-a "
+            "refs/heads/ticket/cleanup-common-nvim-01-20261009-a "
+            "refs/heads/ticket/cleanup-common-nvim-02-20261009-a "
+            "refs/heads/ticket/cleanup-common-nvim-03-20261009-a "
+            "refs/heads/ticket/cleanup-common-nvim-04-20261009-a",
+            "sha256sum docs/plans/common/opencode/review-readiness/ticket01-targeted-tool-evidence.json "
+            "docs/plans/common/opencode/review-readiness/repair01-targeted-tool-evidence.json "
+            "docs/plans/common/opencode/review-readiness/repair02-targeted-tool-evidence.json",
+        )
+        for command in permitted:
+            self.assertEqual(effect(reviewer, "shell", command), "allow", command)
+        checksum = permitted[-1]
+        refs = permitted[-2]
+        for command in ("find docs -name AGENTS.md", "git worktree add /tmp/opencode/other HEAD",
+                        "git worktree remove /tmp/opencode/other", "git worktree prune",
+                        "git add file", "git commit -m test", "git push origin feature/x",
+                        "git for-each-ref", refs + " --count=5", refs + " > /tmp/opencode/out",
+                        "sha256sum /tmp/opencode/unrelated.json", checksum.replace("repair02", "other"),
+                        checksum + " /tmp/opencode/extra", checksum + " > /tmp/opencode/out"):
+            self.assertNotEqual(effect(reviewer, "shell", command), "allow", command)
+        self.assertEqual(effect(reviewer, "read", "config.env"), "deny")
+        self.assertEqual(effect(reviewer, "edit", "src/example.py"), "deny")
+
 
     def test_fixture_role_discovery(self):
         for name in ("orchestrator", "planner", "builder", "merger", "tester", "reviewer"):
