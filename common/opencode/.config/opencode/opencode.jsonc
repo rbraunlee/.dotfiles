@@ -22,9 +22,19 @@
     // Trusted-local delivery: normal edits, checks, branches, commits and feature
     // integration inherit V2's allow default. Kickoff supplies authorization;
     // these rules are guardrails, not a sandbox or a branch-aware policy.
-    // Keep V2's default external-directory ask and its narrow managed skill /
-    // tool-output exceptions. Repeating a broad ask here would override them.
+    // Loaded V2 agent rules begin with allow-all; do not rely on an implicit
+    // external-directory ask being present in each role model. Restore only
+    // the managed paths needed for configuration, tool evidence and delivery.
+    { "action": "external_directory", "resource": "*", "effect": "ask" },
+    { "action": "external_directory", "resource": "/home/rbl/.config/opencode/*", "effect": "allow" },
+    { "action": "external_directory", "resource": "/home/rbl/.local/share/opencode/tool-output/*", "effect": "allow" },
+    { "action": "external_directory", "resource": "/home/rbl/.local/share/opencode/shell/*", "effect": "allow" },
+    { "action": "external_directory", "resource": "/home/rbl/.local/share/opencode/tmp/*", "effect": "allow" },
     { "action": "external_directory", "resource": "/tmp/opencode/*", "effect": "allow" },
+    { "action": "external_directory", "resource": "/home/rbl/.local/share/opencode/worktrees/dotfiles-cleanup/*", "effect": "allow" },
+    // Loaded role models can grant /etc through an earlier automatic rule;
+    // deny it explicitly without overriding managed skill/output exceptions.
+    { "action": "external_directory", "resource": "/etc/*", "effect": "deny" },
     { "action": "edit", "resource": "*.env", "effect": "deny" },
     { "action": "edit", "resource": "*.env.*", "effect": "deny" },
     { "action": "edit", "resource": "*credentials*", "effect": "deny" },
