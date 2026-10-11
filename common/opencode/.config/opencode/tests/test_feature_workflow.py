@@ -297,6 +297,44 @@ class DiscoveryTransportTests(unittest.TestCase):
 
 
 class AssetTests(unittest.TestCase):
+    def test_reviewer_guidance_accepts_verified_owner_authorized_tester_preflight(self):
+        guidance = (CONFIG / "agents/reviewer.md").read_text().split("---", 2)[2]
+        self.assertIn("owner explicitly authorizes", guidance)
+        self.assertIn("independent Tester", guidance)
+        self.assertIn("actual assigned Location", guidance)
+        self.assertIn("exact final SHA", guidance)
+        self.assertIn("source versus recovery-local activation", guidance)
+        self.assertIn("required positive and negative strict-deny checks", guidance)
+        self.assertIn("Reviewer self-query is not mandatory", guidance)
+        self.assertIn("Missing, mismatched, stale or unverified", guidance)
+        self.assertIn("Coordinator conclusion", guidance)
+
+    def test_reviewer_guidance_keeps_own_inspection_and_unchanged_permissions(self):
+        text = (CONFIG / "agents/reviewer.md").read_text()
+        fm, body = text.split("---", 2)[1:]
+        self.assertEqual(hashlib.sha256(("---" + fm + "---").encode()).hexdigest(),
+                         "6d476d621985c74419983fc375a752d5caf7cc3d75cdb6d2b5cec71c0c040646")
+        self.assertIn("Even with independent Tester evidence", body)
+        for required in ("session_move", "Git root, branch and exact final HEAD",
+                         "git worktree list --porcelain", "git merge-base --is-ancestor",
+                         "git for-each-ref", "sha256sum", "complete direct baseline-to-final",
+                         "original safe process evidence", "Standards and Spec", "any new denial"):
+            self.assertIn(required, body)
+        self.assertIn("do not spawn nested reviewers", body)
+        self.assertIn("Never edit, run project", body)
+
+    def test_reviewer_guidance_reports_scoped_owner_incident_exception_honestly(self):
+        body = " ".join((CONFIG / "agents/reviewer.md").read_text().split("---", 2)[2].split())
+        for required in ("explicit recorded owner requirement or exception disposition",
+                         "only at its declared scope", "unresolved credential incident",
+                         "nonblocking under an explicit owner exception",
+                         "not remediated, safe, or clean security history",
+                         "historical finding, evidence and TODO", "human QA and main merge",
+                         "Source correctness or a green rule model cannot clear",
+                         "mandatory higher-priority permission policy", "arbitrary waiver"):
+            self.assertIn(required, body)
+        self.assertIn("Do not read credential values, raw configuration, dumps or affected raw exports", body)
+
     def test_source_approves_only_the_named_delivery_worktree_boundary(self):
         rules = project_permissions(CONFIG / "opencode.jsonc")
         worktrees = "/home/rbl/.local/share/opencode/worktrees/dotfiles-cleanup/*"

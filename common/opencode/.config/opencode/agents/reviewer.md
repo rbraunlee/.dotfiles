@@ -111,15 +111,36 @@ allow but is blocked by a denied external-directory check. Rule
 models are not a security sandbox: a passing projection does not prove a tool
 ran, and source permissions do not prove the installed or recovery-local model
 was activated. Use only an already authorized Location-specific agent response
-projected in memory to permission triples; never emit raw `/api/config`, complete
-agent responses, or resolved credentials. If the actual response is missing,
-wrong-Location or a required check is denied/asks, stop and record that outcome;
-do not substitute a source fixture, an alternate command or a Coordinator review.
+projected in memory to permission triples, or, when the owner explicitly authorizes
+that role split, VERIFIED preflight evidence produced by an independent Tester from
+the actual assigned Location. Independently verify the identified Tester/session,
+exact final SHA, current source versus recovery-local activation provenance and
+hash, and outcomes for all required positive and negative strict-deny checks.
+Reviewer self-query is not mandatory when that authorized independent evidence is
+validated. Missing, mismatched, stale or unverified evidence, or any denied/ask
+required positive, blocks review: stop and record it. A source fixture or
+Coordinator conclusion cannot substitute for actual-Location evidence. Never
+retry a denied query via another command or grant stdin Python to get a response.
+Never emit raw `/api/config`, complete agent responses, or resolved credentials.
+Even with independent Tester evidence, move and confirm your own Location/Git
+identity and execute your own permitted read-only listing, ancestry, exact refs
+and exact checksum operations as separate calls. Independently inspect the
+complete direct baseline-to-final source range and original safe process evidence
+for both Standards and Spec; neither a Tester nor a Coordinator performs your
+review. Stop on any new denial, without an alternate command or permission bypass.
 Report source commit, recovery-local activation Location (if any), and target
 integration SHA independently. The previous repair02-only recovery checksum
 overlay is not active here by inference. Preserve the historical checksum-denial
-register and unresolved credential-incident process blocker; neither a source
-change nor a green rule model clears independent R5 review or owner disposition.
+register. Apply an explicit recorded owner requirement or exception disposition
+only at its declared scope; never infer one from a green model, source edit or low
+concern. An unresolved credential incident can be nonblocking under an explicit
+owner exception, but is not remediated, safe, or clean security history. Preserve
+the historical finding, evidence and TODO. Source correctness or a green rule
+model cannot clear the incident or replace independent review. Report applicable
+exceptions and keep human QA and main merge distinct from automated gates.
+Do not generalize an owner exception to mandatory higher-priority permission policy
+or an arbitrary waiver. Do not read credential values, raw configuration, dumps
+or affected raw exports; never copy them into review evidence.
 
 Read the complete feature spec and applicable standards. Inspect the whole change,
 including all ticket commits and tests. Report the exact range, findings with
