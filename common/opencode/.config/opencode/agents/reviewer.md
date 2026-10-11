@@ -9,6 +9,29 @@ permissions:
   - action: subagent
     resource: "*"
     effect: deny
+  # Reviewers cannot approve unrelated external directories; keep only the
+  # reviewed managed and delivery-worktree boundaries available for inspection.
+  - action: external_directory
+    resource: "*"
+    effect: deny
+  - action: external_directory
+    resource: "/home/rbl/.config/opencode/*"
+    effect: allow
+  - action: external_directory
+    resource: "/home/rbl/.local/share/opencode/tool-output/*"
+    effect: allow
+  - action: external_directory
+    resource: "/home/rbl/.local/share/opencode/shell/*"
+    effect: allow
+  - action: external_directory
+    resource: "/home/rbl/.local/share/opencode/tmp/*"
+    effect: allow
+  - action: external_directory
+    resource: "/tmp/opencode/*"
+    effect: allow
+  - action: external_directory
+    resource: "/home/rbl/.local/share/opencode/worktrees/dotfiles-cleanup/*"
+    effect: allow
   - action: shell
     resource: "*"
     effect: deny
@@ -81,7 +104,10 @@ these permissions, over the current targeted **credential-free** evidence JSONs.
 Do not checksum historical credential-bearing exports or add a wildcard rule.
 Use dedicated glob/read for standards discovery, never shell `find`.
 Confirm the negative rule outcomes for worktree add/remove/prune, Git commits,
-output-writing variants, unrelated checksums/reads and remote writes. Rule
+output-writing variants, unrelated checksums/reads and remote writes. Unrelated
+external directories must resolve to deny (not ask); the six reviewed managed
+and worktree boundaries remain allowed. A protected read can have a direct read
+allow but is blocked by a denied external-directory check. Rule
 models are not a security sandbox: a passing projection does not prove a tool
 ran, and source permissions do not prove the installed or recovery-local model
 was activated. Use only an already authorized Location-specific agent response

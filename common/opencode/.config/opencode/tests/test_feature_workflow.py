@@ -576,7 +576,7 @@ class RuntimeTests(unittest.TestCase):
         for name in ("orchestrator", "builder", "merger", "tester", "reviewer", "planner"):
             agent = self.agents[name]
             self.assertEqual(effect(agent, "external_directory", worktrees), "allow", name)
-            for managed in ("/tmp/opencode/*", "/home/rbl/.config/opencode/skills/*",
+            for managed in ("/tmp/opencode/*", "/home/rbl/.config/opencode/*",
                             "/home/rbl/.local/share/opencode/tool-output/*",
                             "/home/rbl/.local/share/opencode/shell/*",
                             "/home/rbl/.local/share/opencode/tmp/*"):
@@ -585,8 +585,18 @@ class RuntimeTests(unittest.TestCase):
             for unrelated in ("/home/rbl/other/*", "/tmp/unrelated/*",
                               "/home/rbl/.local/share/opencode/other/*",
                               "/home/rbl/.local/share/opencode/worktrees/unrelated/*"):
-                self.assertNotEqual(effect(agent, "external_directory", unrelated), "allow",
-                                    f"{name}: unrelated external boundary")
+                expected = "deny" if name == "reviewer" else "ask"
+                self.assertEqual(effect(agent, "external_directory", unrelated), expected,
+                                 f"{name}: unrelated external boundary")
+
+    def test_reviewer_protected_read_requires_both_read_and_directory_approval(self):
+        reviewer = self.agents["reviewer"]
+        # A direct read allow must not override a denied external directory boundary.
+        self.assertEqual(effect(reviewer, "read", "/etc/hosts"), "allow")
+        self.assertEqual(effect(reviewer, "external_directory", "/etc/*"), "deny")
+        self.assertEqual(effect(reviewer, "read", "config.env"), "deny")
+        self.assertEqual(effect(reviewer, "edit", "src/example.py"), "deny")
+        self.assertEqual(effect(reviewer, "shell", "git push origin main"), "deny")
 
     def test_feature_publication_does_not_match_main_substrings(self):
         for command in ("git push origin feature/domain-model", "git push origin feature/main-menu"):
