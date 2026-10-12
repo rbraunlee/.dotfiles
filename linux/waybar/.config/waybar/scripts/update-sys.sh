@@ -53,10 +53,19 @@ esac
 
 if [[ $1 != official ]]; then
     command -v paru >/dev/null 2>&1 || unavailable
-    listing=$(paru -Qua)
+    result_dir=$(mktemp -d "${TMPDIR:-/tmp}/waybar-paru-result.XXXXXXXX") || unavailable
+    trap 'rm -rf -- "$result_dir"' EXIT
+    paru -Qua > "$result_dir/stdout" 2> "$result_dir/stderr"
     status=$?
-    ((status == 0)) && count_list "$listing" || unavailable
-    AUR=$COUNT
+    cat "$result_dir/stderr" >&2 || unavailable
+    if ((status == 1)); then
+        [[ ! -s $result_dir/stdout && ! -s $result_dir/stderr ]] || unavailable
+        AUR=0
+    else
+        listing=$(< "$result_dir/stdout")
+        ((status == 0)) && count_list "$listing" || unavailable
+        AUR=$COUNT
+    fi
 fi
 
 if [[ $1 != aur ]]; then

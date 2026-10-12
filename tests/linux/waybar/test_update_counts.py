@@ -17,19 +17,21 @@ class UpdateCountTests(unittest.TestCase):
         self.home = Path(self.root.name)
         self.bin = self.home / "bin"
         self.bin.mkdir()
-        (self.bin / "wc").symlink_to("/usr/bin/wc")
+        for command in ("wc", "mktemp", "cat", "rm"):
+            (self.bin / command).symlink_to(f"/usr/bin/{command}")
         self.marker = self.home / "arch-release"
         self.marker.touch()
         self.calls = self.home / "calls"
         self.provider("paru", "aur-pkg 1 -> 2\n")
         self.provider("checkupdates", "official-pkg 1 -> 2\n")
 
-    def provider(self, name, output="", status=0):
+    def provider(self, name, output="", status=0, stderr=""):
         path = self.bin / name
         path.write_text(
             "#!/bin/sh\n"
             f"printf '%s\\n' {shlex.quote(name)} >> {shlex.quote(str(self.calls))}\n"
             f"printf '%s' {shlex.quote(output)}\n"
+            f"printf '%s' {shlex.quote(stderr)} >&2\n"
             f"exit {status}\n",
             encoding="utf-8",
         )
@@ -39,6 +41,7 @@ class UpdateCountTests(unittest.TestCase):
         env = {
             "PATH": str(self.bin),
             "HOME": str(self.home),
+            "TMPDIR": str(self.home),
             "WAYBAR_ARCH_RELEASE_FILE": str(self.marker),
         }
         return subprocess.run(
@@ -65,6 +68,24 @@ class UpdateCountTests(unittest.TestCase):
         result = self.run_script()
         self.assertEqual((result.returncode, result.stdout), (0, "\n"))
 
+    def test_empty_paru_status_one_counts_official_updates(self):
+        self.provider("paru", status=1)
+        result = self.run_script()
+        self.assertEqual((result.returncode, result.stdout, result.stderr), (0, " 1\n", ""))
+        self.assertEqual(self.calls.read_text().splitlines(), ["paru", "checkupdates"])
+        self.assertEqual(list(self.home.glob("waybar-paru-result.*")), [])
+
+    def test_empty_paru_status_one_with_zero_official_updates_leaves_bar_blank(self):
+        self.provider("paru", status=1)
+        for status in (0, 2):
+            with self.subTest(official_status=status):
+                self.provider("checkupdates", status=status)
+                self.calls.unlink(missing_ok=True)
+                result = self.run_script()
+                self.assertEqual((result.returncode, result.stdout, result.stderr), (0, "\n", ""))
+                self.assertEqual(self.calls.read_text().splitlines(), ["paru", "checkupdates"])
+                self.assertEqual(list(self.home.glob("waybar-paru-result.*")), [])
+
     def test_official_no_updates_status_two_is_not_a_failure(self):
         self.provider("checkupdates", status=2)
         result = self.run_script()
@@ -74,6 +95,34 @@ class UpdateCountTests(unittest.TestCase):
         self.provider("paru", "provider error\n", status=1)
         result = self.run_script()
         self.assertEqual((result.returncode, result.stdout), (0, "Updates unavailable\n"))
+
+    def test_paru_status_one_stderr_diagnostic_is_unavailable_and_preserved(self):
+        self.provider("paru", status=1, stderr="database not available\n")
+        result = self.run_script()
+        self.assertEqual(
+            (result.returncode, result.stdout, result.stderr),
+            (0, "Updates unavailable\n", "database not available\n"),
+        )
+        self.assertEqual(self.calls.read_text().splitlines(), ["paru"])
+        self.assertEqual(list(self.home.glob("waybar-paru-result.*")), [])
+
+    def test_paru_status_one_whitespace_is_not_empty(self):
+        for streams in ({"output": " \n"}, {"output": "\n"}, {"stderr": "\n"}):
+            with self.subTest(streams=streams):
+                self.provider("paru", status=1, **streams)
+                self.calls.unlink(missing_ok=True)
+                result = self.run_script()
+                self.assertEqual((result.returncode, result.stdout), (0, "Updates unavailable\n"))
+                self.assertEqual(result.stderr, streams.get("stderr", ""))
+                self.assertEqual(self.calls.read_text().splitlines(), ["paru"])
+                self.assertEqual(list(self.home.glob("waybar-paru-result.*")), [])
+
+    def test_official_failure_after_empty_paru_must_not_show_partial_total(self):
+        self.provider("paru", status=1)
+        self.provider("checkupdates", "database not available\n", status=1)
+        result = self.run_script()
+        self.assertEqual((result.returncode, result.stdout), (0, "Updates unavailable\n"))
+        self.assertEqual(self.calls.read_text().splitlines(), ["paru", "checkupdates"])
 
     def test_failing_official_must_not_show_partial_aur_count(self):
         self.provider("checkupdates", "provider error\n", status=1)
@@ -94,6 +143,25 @@ class UpdateCountTests(unittest.TestCase):
         self.provider("paru", status=2)
         result = self.run_script()
         self.assertEqual((result.returncode, result.stdout), (0, "Updates unavailable\n"))
+
+    def test_unexpected_paru_status_preserves_stderr_diagnostic(self):
+        self.provider("paru", status=2, stderr="query failed\n")
+        result = self.run_script()
+        self.assertEqual(
+            (result.returncode, result.stdout, result.stderr),
+            (0, "Updates unavailable\n", "query failed\n"),
+        )
+        self.assertEqual(self.calls.read_text().splitlines(), ["paru"])
+        self.assertEqual(list(self.home.glob("waybar-paru-result.*")), [])
+
+    def test_successful_paru_listing_preserves_stderr_without_counting_it(self):
+        self.provider("paru", "aur-pkg 1 -> 2\n", stderr="cache warning\n")
+        result = self.run_script("aur")
+        self.assertEqual(
+            (result.returncode, result.stdout, result.stderr),
+            (0, " 1\n", "cache warning\n"),
+        )
+        self.assertEqual(list(self.home.glob("waybar-paru-result.*")), [])
 
     def test_official_no_updates_status_must_not_mask_diagnostics(self):
         self.provider("checkupdates", "database not available\n", status=2)
@@ -124,10 +192,13 @@ class UpdateCountTests(unittest.TestCase):
         result = self.run_script("official")
         self.assertEqual((result.returncode, result.stdout), (0, " 2\n"))
 
-    def test_named_mode_failed_provider_is_unavailable(self):
+    def test_aur_mode_empty_paru_status_one_preserves_zero_icon_and_skips_official(self):
+        (self.bin / "checkupdates").unlink()
         self.provider("paru", status=1)
         result = self.run_script("aur")
-        self.assertEqual((result.returncode, result.stdout), (0, "Updates unavailable\n"))
+        self.assertEqual((result.returncode, result.stdout, result.stderr), (0, " 0\n", ""))
+        self.assertEqual(self.calls.read_text().splitlines(), ["paru"])
+        self.assertEqual(list(self.home.glob("waybar-paru-result.*")), [])
 
     def test_successful_query_diagnostic_stdout_is_not_a_count(self):
         self.provider("checkupdates", "warning: cache corrupt\n")
