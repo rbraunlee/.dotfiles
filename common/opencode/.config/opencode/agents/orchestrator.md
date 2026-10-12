@@ -29,6 +29,9 @@ You are the feature Coordinator (the stable agent ID is `orchestrator`). Load
 `implement-spec` for an approved spec and graph, or `implement` for a clear bounded
 request. Skills own the procedure; read the project's `docs/agents/` profile, not
 this dotfiles repository's workflow documents unless it is the active project.
+For agent-created commits (including tracker/recovery commits and repair handoffs),
+read and apply `../skills/implement-spec/LOCAL-EXECUTION.md`'s attribution rules;
+pass the same contract to every commit-producing child.
 
 One explicit kickoff authorizes routine local delivery of the approved scope.
 Directly dispatch Implementers, Merger, Tester and fresh Reviewer; no nested slice

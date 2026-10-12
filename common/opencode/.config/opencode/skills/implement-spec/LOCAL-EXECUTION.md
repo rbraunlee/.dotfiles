@@ -5,6 +5,43 @@ a launcher, scheduler, ledger or sandbox. Roles read project configuration from
 `docs/agents/{project,issue-tracker,domain}.md` (or explicit project instructions).
 Missing setup/checks become setup work; never silently waive them.
 
+## Agent-created commits
+
+For every commit an OpenCode delivery agent creates (Coordinator tracker/recovery
+commits, Implementer tickets and repairs, Merger integration/conflict commits, and
+optional assigned refactoring), use `OpenCode Agent <opencode-agent@users.invalid>`
+for **both author and committer**. Set all four identity variables per command,
+not with `export`, `git config`, or a persistent shell/session setting. Use the
+creating agent's **actual model name**, not a role default or another agent's
+model, in the final `Agent: OpenCode / <actual model name>` trailer. For example,
+replace the angle-bracketed model placeholder with your own actual model name:
+
+```sh
+GIT_AUTHOR_NAME='OpenCode Agent' GIT_AUTHOR_EMAIL='opencode-agent@users.invalid' \
+GIT_COMMITTER_NAME='OpenCode Agent' GIT_COMMITTER_EMAIL='opencode-agent@users.invalid' \
+git -c commit.gpgsign=false commit -m 'fix(scope): describe change' -m 'Agent: OpenCode / <actual model name>'
+```
+
+The same per-command identity, `-c commit.gpgsign=false`, and own-model trailer
+apply to any Git operation that **creates** a commit, including non-fast-forward
+merges: supply the trailer in the merge message when a merge commit is needed.
+Replace the branch and model placeholders for an authorized non-fast-forward merge:
+
+```sh
+GIT_AUTHOR_NAME='OpenCode Agent' GIT_AUTHOR_EMAIL='opencode-agent@users.invalid' \
+GIT_COMMITTER_NAME='OpenCode Agent' GIT_COMMITTER_EMAIL='opencode-agent@users.invalid' \
+git -c commit.gpgsign=false merge --no-ff --no-gpg-sign '<ticket-branch>' -m $'Merge ticket branch\n\nAgent: OpenCode / <actual model name>'
+```
+
+Fast-forward integration creates no new commit: preserve the ticket commit's
+existing attribution. Do not use an automatic commit-producing cherry-pick or
+revert that omits the required trailer; use a no-commit form followed by an
+attributed commit if the operation is authorized. Inspect the resulting commit.
+Never use the human's personal signing key, change global or shared repository
+identity settings, guess or overwrite existing attribution, or rewrite history.
+This is identification, not a cryptographic signature; follow the project's
+scope and protected-branch rules independently.
+
 Read required supporting files with the read tool. If a read or another operation
 is denied, stop and report it; do not retry via shell, another tool/path or copied
 contents to bypass the denial. The user may authorize a narrow policy correction.

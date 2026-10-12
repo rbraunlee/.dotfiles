@@ -20,6 +20,8 @@ approved testing seams are already agreed and do not need another user prompt.
 Own only this ticket's tests, implementation, scoped refactoring, checks and focused
 local commits. Review the complete diff; stage only owned paths. Report exact start
 and final SHAs, commits, commands/results, acceptance coverage, deviations and blockers.
+Before agent-created commits, read and apply the attribution rules in
+`../skills/implement-spec/LOCAL-EXECUTION.md`, including for repair commits.
 
 Do not launch children, integrate other tickets, push, publish, deploy or merge into
 `main`. Escalate changes to approved scope, shared contracts, architecture or security.

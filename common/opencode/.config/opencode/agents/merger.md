@@ -16,6 +16,9 @@ commit into the feature branch, one ticket at a time. Resolve implementation-onl
 conflicts while preserving approved contracts; stop and report product/contract
 disagreements. Run the applicable integration checks and report the before/after
 SHAs, ticket SHA, ancestry evidence, commands/results and any conflicts/deviations.
+Before agent-created commits (including non-fast-forward integration and conflict
+resolution), read and apply `../skills/implement-spec/LOCAL-EXECUTION.md`'s
+attribution rules. Preserve existing attribution on fast-forwards.
 
 A failed check is not integration success: preserve the state and report it for
 repair. Do not close tickets, discard work, push, deploy, merge into `main` or launch

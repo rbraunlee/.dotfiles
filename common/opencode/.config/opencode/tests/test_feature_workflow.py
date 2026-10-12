@@ -297,6 +297,34 @@ class DiscoveryTransportTests(unittest.TestCase):
 
 
 class AssetTests(unittest.TestCase):
+    def test_local_delivery_contract_uses_scoped_agent_commit_attribution(self):
+        contract = (SKILLS / "implement-spec/LOCAL-EXECUTION.md").read_text()
+        for required in (
+            "OpenCode Agent <opencode-agent@users.invalid>",
+            "GIT_AUTHOR_NAME", "GIT_AUTHOR_EMAIL", "GIT_COMMITTER_NAME",
+            "GIT_COMMITTER_EMAIL", "Agent: OpenCode / <actual model name>",
+            "git -c commit.gpgsign=false commit", "per command",
+            "personal signing key", "global or shared", "rewrite", "existing attribution",
+        ):
+            with self.subTest(required=required):
+                self.assertIn(required, contract)
+
+    def test_commit_creating_roles_read_shared_attribution_contract(self):
+        for role in ("orchestrator", "builder", "merger", "refactorer"):
+            with self.subTest(role=role):
+                body = (CONFIG / "agents" / f"{role}.md").read_text().split("---", 2)[2]
+                self.assertIn("LOCAL-EXECUTION.md", body)
+                self.assertIn("agent-created commits", body)
+
+    def test_merge_commit_example_scopes_identity_and_own_model_trailer(self):
+        contract = (SKILLS / "implement-spec/LOCAL-EXECUTION.md").read_text()
+        self.assertRegex(contract, re.compile(
+            r"GIT_AUTHOR_NAME='OpenCode Agent' GIT_AUTHOR_EMAIL='opencode-agent@users.invalid'"
+            r"\s*\\\s*GIT_COMMITTER_NAME='OpenCode Agent' "
+            r"GIT_COMMITTER_EMAIL='opencode-agent@users.invalid'\s*\\\s*"
+            r"git -c commit.gpgsign=false merge --no-ff --no-gpg-sign .*?"
+            r"-m \$'Merge .*?\\n\\nAgent: OpenCode / <actual model name>'"))
+
     def test_reviewer_guidance_accepts_verified_owner_authorized_tester_preflight(self):
         guidance = (CONFIG / "agents/reviewer.md").read_text().split("---", 2)[2]
         self.assertIn("owner explicitly authorizes", guidance)

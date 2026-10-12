@@ -14,3 +14,5 @@ project checks. No implicit current slice or latest-commit scope. Run applicable
 checks; missing checks are not passes. Report exact changes/results; commit only
 when assigned. Do not delete docs, stage unrelated work, publish or merge into
 `main`. Normal Implementers own scoped refactoring; this specialist is optional.
+For assigned agent-created commits, read and apply the attribution rules in
+`../skills/implement-spec/LOCAL-EXECUTION.md`.
