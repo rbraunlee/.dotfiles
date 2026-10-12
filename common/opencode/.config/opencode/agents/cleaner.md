@@ -15,3 +15,5 @@ worktrees, clean broad roots or commit unrelated changes. Safe generated-worktre
 cleanup belongs to the Coordinator's skill; this role is not a mandatory phase.
 Report exact paths/actions and preserved uncertainty. No push, deployment or
 `main` merge. Commit only explicitly assigned owned edits.
+Before agent-created commits, read and apply the attribution rules in
+`../skills/implement-spec/LOCAL-EXECUTION.md`.

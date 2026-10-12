@@ -310,7 +310,7 @@ class AssetTests(unittest.TestCase):
                 self.assertIn(required, contract)
 
     def test_commit_creating_roles_read_shared_attribution_contract(self):
-        for role in ("orchestrator", "builder", "merger", "refactorer"):
+        for role in ("orchestrator", "builder", "merger", "refactorer", "cleaner"):
             with self.subTest(role=role):
                 body = (CONFIG / "agents" / f"{role}.md").read_text().split("---", 2)[2]
                 self.assertIn("LOCAL-EXECUTION.md", body)
