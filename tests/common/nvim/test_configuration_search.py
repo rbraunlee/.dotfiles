@@ -1,5 +1,6 @@
 """Exercise the configured search mappings without loading Telescope or user init."""
 
+import hashlib
 import os
 from pathlib import Path
 import subprocess
@@ -9,6 +10,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[3]
 PLUGIN = ROOT / "common/nvim/.config/nvim/lua/plugins/telescope.lua"
+PINNED_PROVIDER = Path(__file__).parent / "fixtures/pinned_telescope_find_files.lua"
 
 
 class ConfigurationSearch(unittest.TestCase):
@@ -46,12 +48,38 @@ class ConfigurationSearch(unittest.TestCase):
         self.config_home.mkdir()
         self.config = self.config_home / "search-test"
 
-    def run_nvim(self, checks):
+    def run_nvim(self, checks, pinned_provider=False):
         script = self.root / "checks.lua"
+        builtin_stub = """
+package.preload['telescope.builtin'] = function()
+  return setmetatable({find_files = function(opts) table.insert(calls, opts) end},
+    {__index = function() return function() end end})
+end
+"""
+        if pinned_provider:
+            builtin_stub = """
+utils = {path_expand = function(path) return path end}
+log = {warn = function() end}
+make_entry = {gen_from_file = function() return function(path) return {value = path} end end}
+finders = {new_oneshot_job = function(command)
+  table.insert(jobs, command)
+  return command
+end}
+conf = {file_previewer = function() return {} end, file_sorter = function() return {} end}
+pickers = {new = function(options, opts)
+  return {find = function()
+    table.insert(calls, {options = options, opts = opts, command = jobs[#jobs]})
+  end}
+end}
+package.preload['telescope.builtin'] = function()
+  return setmetatable({find_files = dofile(""" + repr(str(PINNED_PROVIDER)) + """)},
+    {__index = function() return function() end end})
+end
+"""
         script.write_text(
             """
 vim.g.mapleader = ' '
-local calls, notices = {}, {}
+local calls, notices, jobs = {}, {}, {}
 vim.notify = function(msg, level) table.insert(notices, {msg = msg, level = level}) end
 package.preload['telescope'] = function()
   return {setup = function() end, load_extension = function() end}
@@ -59,10 +87,7 @@ end
 package.preload['telescope.themes'] = function()
   return {get_dropdown = function() return {} end}
 end
-package.preload['telescope.builtin'] = function()
-  return setmetatable({find_files = function(opts) table.insert(calls, opts) end},
-    {__index = function() return function() end end})
-end
+""" + builtin_stub + """
 package.preload['telescope.make_entry'] = function()
   return {gen_from_file = function() return function(path) return {value = path} end end}
 end
@@ -220,6 +245,130 @@ assert(#calls == 1 and calls[1].cwd == vim.fn.stdpath('config'))
 assert(#notices == 1 and notices[1].level == vim.log.levels.WARN, vim.inspect(notices))
 assert(notices[1].msg:find('dotfiles repository') and notices[1].msg:find('config'), vim.inspect(notices))
 """)
+
+    def test_missing_ignore_aware_provider_does_not_open_configuration_picker(self):
+        self.config.symlink_to(self.source, target_is_directory=True)
+        self.run_nvim("""
+local executable = vim.fn.executable
+vim.fn.executable = function(name)
+  if name == 'rg' or name == 'fd' or name == 'fdfind' then return 0 end
+  return executable(name)
+end
+invoke('<leader>sc')
+assert(#calls == 0, 'unsafe fallback could enumerate ignored files: ' .. vim.inspect(calls))
+assert(#notices == 1 and notices[1].level == vim.log.levels.WARN, vim.inspect(notices))
+assert(notices[1].msg:find('rg', 1, true) and notices[1].msg:find('fd', 1, true), vim.inspect(notices))
+""")
+
+    def test_missing_provider_does_not_enumerate_active_config_links(self):
+        self.config.symlink_to(self.source, target_is_directory=True)
+        self.run_nvim("""
+vim.fn.executable = function(name)
+  if name == 'rg' or name == 'fd' or name == 'fdfind' then return 0 end
+  if name == 'find' then return 1 end
+  return 0
+end
+invoke('<leader>sn')
+assert(#calls == 0, 'active config must not fall back to find: ' .. vim.inspect(calls))
+assert(#notices == 1 and notices[1].level == vim.log.levels.WARN)
+""")
+
+    def pinned_provider_case(self, available, expected):
+        self.config.symlink_to(self.source, target_is_directory=True)
+        self.run_nvim("""
+local executable = vim.fn.executable
+local available = {""" + ", ".join("[" + repr(tool) + "] = true" for tool in available) + """}
+vim.fn.executable = function(name)
+  if name == 'rg' or name == 'fd' or name == 'fdfind' then
+    return available[name] and 1 or 0
+  end
+  if name == 'find' then return 1 end -- pinned fallback must never run
+  return executable(name)
+end
+invoke('<leader>sc')
+local expected = """ + repr(expected) + """
+if expected == '' then
+  assert(#calls == 0 and #jobs == 0, 'must not enumerate or preview: ' .. vim.inspect(calls))
+  assert(#notices == 1 and notices[1].level == vim.log.levels.WARN, vim.inspect(notices))
+  assert(notices[1].msg:find('rg', 1, true) and notices[1].msg:find('fd', 1, true))
+else
+  assert(#calls == 1 and #jobs == 1 and #notices == 0, vim.inspect({calls, jobs, notices}))
+  local picked = calls[1]
+  assert(picked.command[1] == expected, vim.inspect(picked.command))
+  assert(picked.command[1] ~= 'find' and picked.command[1] ~= 'where')
+  local prefix = expected == 'rg' and {'rg', '--files', '--color', 'never'}
+    or {expected, '--type', 'f', '--color', 'never'}
+  for i, arg in ipairs(prefix) do assert(picked.command[i] == arg, vim.inspect(picked.command)) end
+  if expected ~= 'rg' then assert(picked.command[7] == '.', vim.inspect(picked.command)) end
+  assert(vim.tbl_contains(picked.command, '--hidden'), vim.inspect(picked.command))
+  assert(not vim.tbl_contains(picked.command, '--no-ignore'), vim.inspect(picked.command))
+  assert(not vim.tbl_contains(picked.command, '--no-ignore-parent'))
+  assert(not vim.tbl_contains(picked.command, '-L'))
+  assert(picked.options.cwd == """ + repr(str(self.repo)) + """)
+  assert(picked.options.hidden and not picked.options.no_ignore and not picked.options.follow)
+  assert(picked.opts.previewer and picked.opts.sorter, 'default previews and sorters remain available')
+  assert(picked.opts.finder == picked.command)
+  assert(picked.opts.prompt_title == 'Find Files')
+  assert(#picked.command >= 7 and picked.command[#picked.command - 2] == """ + repr(str(self.repo / "common")) + """)
+  assert(picked.command[#picked.command - 1] == """ + repr(str(self.repo / "linux")) + """)
+  assert(picked.command[#picked.command] == """ + repr(str(self.repo / "macos")) + """)
+end
+""", pinned_provider=True)
+
+    def test_pinned_rg_provider_selection(self):
+        self.pinned_provider_case(("rg", "fd", "fdfind"), "rg")
+
+    def test_pinned_fd_provider_selection(self):
+        self.pinned_provider_case(("fd", "fdfind"), "fd")
+
+    def test_pinned_fdfind_provider_selection(self):
+        self.pinned_provider_case(("fdfind",), "fdfind")
+
+    def test_pinned_missing_provider_refuses_unix_find(self):
+        self.pinned_provider_case((), "")
+
+    def test_pinned_provider_disappearing_after_check_never_selects_find(self):
+        self.config.symlink_to(self.source, target_is_directory=True)
+        self.run_nvim("""
+local count = 0
+vim.fn.executable = function(name)
+  if name == 'rg' then
+    count = count + 1
+    return count == 1 and 1 or 0
+  end
+  if name == 'find' then return 1 end
+  return 0
+end
+invoke('<leader>sc')
+assert(#calls == 0 or (#calls == 1 and calls[1].command[1] == 'rg'), vim.inspect(calls))
+assert(#jobs == 0 or jobs[1][1] == 'rg', vim.inspect(jobs))
+""", pinned_provider=True)
+
+    def test_pinned_active_config_preserves_follow_and_repository_ignore_filter(self):
+        self.config.mkdir()
+        (self.config / "init.lua").symlink_to(self.source / "init.lua")
+        (self.config / "lua").symlink_to(self.source / "lua", target_is_directory=True)
+        self.run_nvim("""
+invoke('<leader>sn')
+assert(#calls == 1 and calls[1].command[1] == 'rg', vim.inspect(calls))
+assert(vim.tbl_contains(calls[1].command, '--hidden'))
+assert(vim.tbl_contains(calls[1].command, '-L'))
+assert(not vim.tbl_contains(calls[1].command, '--no-ignore'))
+assert(calls[1].opts.previewer and calls[1].opts.sorter)
+assert(calls[1].opts.finder == calls[1].command)
+assert(#jobs == 1 and #notices == 0)
+assert(calls[1].options.cwd == vim.fn.stdpath('config'))
+assert(calls[1].options.entry_maker('lua/config/keymaps.lua'))
+assert(calls[1].options.entry_maker('lua/config/.env') == nil,
+  'repository-ignored linked file must not be previewed')
+""", pinned_provider=True)
+
+    def test_pinned_provider_fixture_matches_locked_selection_contract(self):
+        text = PINNED_PROVIDER.read_text()
+        implementation = text[text.index("files.find_files = function(opts)"):
+                              text.index("\nreturn files.find_files")].rstrip()
+        self.assertEqual(hashlib.sha256(implementation.encode()).hexdigest(),
+                         "69ee6839ce169bafffca559a099ae49b07ab0a51639b50cb0f8f30ad50755ce2")
 
 
 if __name__ == "__main__":

@@ -191,11 +191,27 @@ return {
       end
     end
 
+    -- Match pinned Telescope's provider preference, but fix the command before
+    -- invoking it. If availability changes, it must not fall back to find/where.
+    local function ignore_aware_command()
+      local commands = {
+        rg = { 'rg', '--files', '--color', 'never' },
+        fd = { 'fd', '--type', 'f', '--color', 'never' },
+        fdfind = { 'fdfind', '--type', 'f', '--color', 'never' },
+      }
+      for _, name in ipairs { 'rg', 'fd', 'fdfind' } do
+        if vim.fn.executable(name) == 1 then return commands[name] end
+      end
+      vim.notify('Configuration search requires rg, fd or fdfind to respect repository ignores', vim.log.levels.WARN)
+    end
+
     -- Keep the active config path for individual links. Telescope's `follow`
     -- makes linked files visible; its normal ignore rules remain in force.
     vim.keymap.set('n', '<leader>sn', function()
+      local command = ignore_aware_command()
+      if not command then return end
       local config = vim.fn.stdpath 'config'
-      local options = { cwd = config, hidden = true, follow = true }
+      local options = { cwd = config, hidden = true, follow = true, find_command = command }
       local root = dotfiles_root(config)
       if root then options.entry_maker = repository_entry_maker(config, root) end
       builtin.find_files(options)
@@ -219,7 +235,9 @@ return {
         vim.notify('No environment-group packages found in dotfiles repository: ' .. root, vim.log.levels.WARN)
         return
       end
-      builtin.find_files { cwd = root, search_dirs = groups, hidden = true }
+      local command = ignore_aware_command()
+      if not command then return end
+      builtin.find_files { cwd = root, search_dirs = groups, hidden = true, find_command = command }
     end, { desc = '[S]earch [C]onfiguration files' })
   end,
 }
