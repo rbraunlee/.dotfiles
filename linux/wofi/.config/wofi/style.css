@@ -39,14 +39,9 @@ window {
     font-size: 14px;
 }
 
-/* ================== List and Scrollbar ================== */
+/* ================== Scrollbar ================== */
 #scroll {
     margin-top: 10px;
-}
-
-#list {
-    margin: 0;
-    padding: 0;
 }
 
 /* ================== Entry Styles ================== */
@@ -62,7 +57,7 @@ window {
 }
 
 /* Style for the selected entry */
-#entry:focus {
+#entry:selected {
     background-color: #458588; /* Gruvbox blue for the selection highlight */
     color: #ebdbb2; /* Ensure text is readable on the highlight */
     border: none;
