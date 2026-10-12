@@ -302,24 +302,27 @@ class AssetTests(unittest.TestCase):
         self.assertIn("owner explicitly authorizes", guidance)
         self.assertIn("independent Tester", guidance)
         self.assertIn("actual assigned Location", guidance)
-        self.assertIn("exact final SHA", guidance)
-        self.assertIn("source versus recovery-local activation", guidance)
+        self.assertIn("immutable review SHA", guidance)
+        self.assertIn("source revision", guidance)
+        self.assertIn("source versus local", guidance)
+        self.assertIn("including any local override", guidance)
         self.assertIn("required positive and negative strict-deny checks", guidance)
         self.assertIn("Reviewer self-query is not mandatory", guidance)
         self.assertIn("Missing, mismatched, stale or unverified", guidance)
         self.assertIn("Coordinator conclusion", guidance)
 
-    def test_reviewer_guidance_keeps_own_inspection_and_unchanged_permissions(self):
+    def test_reviewer_guidance_keeps_own_inspection_without_unrelated_prerequisites(self):
         text = (CONFIG / "agents/reviewer.md").read_text()
-        fm, body = text.split("---", 2)[1:]
-        self.assertEqual(hashlib.sha256(("---" + fm + "---").encode()).hexdigest(),
-                         "6d476d621985c74419983fc375a752d5caf7cc3d75cdb6d2b5cec71c0c040646")
+        body = text.split("---", 2)[2]
         self.assertIn("Even with independent Tester evidence", body)
         for required in ("session_move", "Git root, branch and exact final HEAD",
                          "git worktree list --porcelain", "git merge-base --is-ancestor",
-                         "git for-each-ref", "sha256sum", "complete direct baseline-to-final",
-                         "original safe process evidence", "Standards and Spec", "any new denial"):
+                         "complete direct baseline-to-final", "original safe process evidence",
+                         "Standards and Spec", "any new denial"):
             self.assertIn(required, body)
+        self.assertNotIn("exact five-ref", body)
+        self.assertNotIn("literal three-file", body)
+        self.assertIn("only when applicable", body)
         self.assertIn("do not spawn nested reviewers", body)
         self.assertIn("Never edit, run project", body)
 
@@ -513,34 +516,52 @@ class RuntimeTests(unittest.TestCase):
     def setUpClass(cls):
         cls.agents = discover_agents(shutil.which("opencode"))
 
-    def test_reviewer_scoped_read_only_inspection_and_safe_evidence(self):
+    def test_reviewer_routine_inspection_without_historical_evidence_grants(self):
         reviewer = self.agents["reviewer"]
         permitted = (
-            "pwd", "git rev-parse --show-toplevel", "git rev-parse HEAD",
+            "pwd", "git rev-parse --show-toplevel", "git branch --show-current",
+            "git rev-parse HEAD", "git status --short", "git diff 668b23b f00d123",
             "git worktree list --porcelain", "git merge-base --is-ancestor 668b23b HEAD",
-            "git for-each-ref --format='%(refname) %(objectname)' "
-            "refs/heads/feature/cleanup-common-nvim-20261009-a "
-            "refs/heads/ticket/cleanup-common-nvim-01-20261009-a "
-            "refs/heads/ticket/cleanup-common-nvim-02-20261009-a "
-            "refs/heads/ticket/cleanup-common-nvim-03-20261009-a "
-            "refs/heads/ticket/cleanup-common-nvim-04-20261009-a",
-            "sha256sum docs/plans/common/opencode/review-readiness/ticket01-targeted-tool-evidence.json "
-            "docs/plans/common/opencode/review-readiness/repair01-targeted-tool-evidence.json "
-            "docs/plans/common/opencode/review-readiness/repair02-targeted-tool-evidence.json",
         )
         for command in permitted:
             self.assertEqual(effect(reviewer, "shell", command), "allow", command)
-        checksum = permitted[-1]
-        refs = permitted[-2]
+        unassigned_refs = ("git for-each-ref --format='%(refname) %(objectname)' "
+                           "refs/heads/feature/other-feature")
+        unassigned_checksum = "sha256sum docs/other-feature/evidence.json"
         for command in ("find docs -name AGENTS.md", "git worktree add /tmp/opencode/other HEAD",
-                        "git worktree remove /tmp/opencode/other", "git worktree prune",
-                        "git add file", "git commit -m test", "git push origin feature/x",
-                        "git for-each-ref", refs + " --count=5", refs + " > /tmp/opencode/out",
-                        "sha256sum /tmp/opencode/unrelated.json", checksum.replace("repair02", "other"),
-                        checksum + " /tmp/opencode/extra", checksum + " > /tmp/opencode/out"):
-            self.assertNotEqual(effect(reviewer, "shell", command), "allow", command)
+                         "git worktree remove /tmp/opencode/other", "git worktree prune",
+                         "git add file", "git commit -m test", "git push origin feature/x",
+                         "git for-each-ref", unassigned_refs,
+                         unassigned_refs + " --count=5", unassigned_refs + " > /tmp/opencode/out",
+                         unassigned_checksum, "sha256sum /tmp/opencode/unrelated.json",
+                         "git diff 668b23b f00d123 > /tmp/opencode/out",
+                         "git diff --output=/tmp/opencode/out 668b23b f00d123"):
+            self.assertEqual(effect(reviewer, "shell", command), "deny", command)
         self.assertEqual(effect(reviewer, "read", "config.env"), "deny")
         self.assertEqual(effect(reviewer, "edit", "src/example.py"), "deny")
+
+    def test_preflight_applies_only_assigned_evidence_and_blocks_missing_required_evidence(self):
+        location = "/tmp/opencode/assigned-review"
+        reply = {"location": {"directory": location}, "data": self.agents["reviewer"]}
+        routine = (("shell", "pwd", "allow"),
+                   ("shell", "git status --short", "allow"),
+                   ("shell", "git worktree list --porcelain", "allow"),
+                   ("shell", "git merge-base --is-ancestor base123 tip456", "allow"),
+                   ("shell", "git diff base123 tip456", "allow"),
+                   ("shell", "git push origin feature/x", "deny"),
+                   ("external_directory", "/tmp/unrelated/*", "deny"))
+        provenance = {"tester": "independent", "source": "revision", "active": "verified"}
+        result = reviewer_preflight(reply, location, "tip456", routine, provenance=provenance)
+        self.assertEqual(result["head"], "tip456")
+        self.assertEqual(len(result["rules"]), len(routine))
+        self.assertNotIn("sha256sum", repr(result))
+        with self.assertRaisesRegex(AssertionError, "mismatch or pending"):
+            reviewer_preflight(reply, location, "tip456",
+                               routine + (("shell", "sha256sum docs/this-feature/evidence.json", "allow"),),
+                               provenance=provenance)
+        with self.assertRaisesRegex(AssertionError, "Location mismatch"):
+            reviewer_preflight(reply, "/tmp/opencode/other", "tip456", routine,
+                               provenance=provenance)
 
 
     def test_fixture_role_discovery(self):
@@ -632,6 +653,10 @@ class RuntimeTests(unittest.TestCase):
         # A direct read allow must not override a denied external directory boundary.
         self.assertEqual(effect(reviewer, "read", "/etc/hosts"), "allow")
         self.assertEqual(effect(reviewer, "external_directory", "/etc/*"), "deny")
+        self.assertEqual(effect(reviewer, "read", "docs/README.md"), "allow")
+        self.assertEqual(effect(reviewer, "external_directory",
+                                "/home/rbl/.local/share/opencode/worktrees/dotfiles-cleanup/*"),
+                         "allow")
         self.assertEqual(effect(reviewer, "read", "config.env"), "deny")
         self.assertEqual(effect(reviewer, "edit", "src/example.py"), "deny")
         self.assertEqual(effect(reviewer, "shell", "git push origin main"), "deny")
