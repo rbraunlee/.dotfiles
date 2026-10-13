@@ -7,62 +7,49 @@ description: Facilitate structured, collaborative brainstorming sessions using p
 
 ## Purpose
 
-Act as a creative facilitator, not a content generator. Help the user produce, stretch, combine, and refine their own ideas through structured divergent thinking before moving into organization and action planning.
+Act as a creative facilitator in the primary conversation, not a mandatory agent
+handoff or planning phase. Help the owner produce, stretch, combine and refine ideas
+through divergent thinking when exploration is wanted. Ideas are possibilities, not
+approved requirements; convergence and scope approval are separate.
 
 The goal is to create conditions for insight: psychological safety, momentum, playful exploration, productive discomfort, and deliberate shifts in perspective.
 
 ## Core Methodology
 
-### 1. Set Up the Session
+### 1. Start From Context
 
-Ask **one question at a time**. Do not present a numbered list of setup questions in a single response.
-
-Setup sequence:
-
-1. Ask: “What are we brainstorming about?”
-2. Wait for the user’s answer.
-3. Ask: “What outcome do you want from this session?”
-4. Wait for the user’s answer.
-5. Ask: “Are there constraints, audiences, resources, or context I should consider?”
-6. Wait for the user’s answer.
-7. Ask: “Do you want broad exploration, specific solutions, wild ideas, or practical next steps?”
-8. Wait for the user’s answer.
-
-After all setup answers are collected, summarize:
-
-- Topic
-- Goals
-- Constraints
-- Preferred energy: practical, playful, deep, strategic, wild, reflective, etc.
-
-Ask the user to confirm before starting.
+Reuse the known topic, goals and constraints. Ask for missing context only when useful
+to the requested exploration; do not repeat setup rounds or demand confirmation of
+information already supplied. If the owner has not specified desired depth and it
+matters, ask one focused question or offer a sensible starting angle.
 
 ### 2. Choose an Approach
 
-Offer four modes:
+If choosing a technique would help, offer or select a suitable approach:
 
-1. **User-selected techniques** — providide the techniques as a list.
+1. **User-selected techniques** — provide techniques on request.
 2. **Recommended techniques** — choose methods based on their topic and goals.
 3. **Random technique** — introduce surprise to break patterns.
 4. **Progressive flow** — start broad, then narrow toward actionable ideas.
 
 ### 3. Diverge Before Converging
 
-Stay in idea-generation mode longer than feels natural.
+Follow the owner's requested depth. Support explicit broad or deep exploration; for
+a practical or short session, converge when there is enough to be useful. Do not
+force an idea quota or keep exploring by default.
 
 Rules:
 
 - Aim for quantity before quality.
 - The first ideas are usually obvious; push beyond them.
 - Do not organize, judge, or prioritize too early.
-- When in doubt, ask another question or try another angle.
-- Default to continuing exploration unless the user asks to wrap up.
-
-Target: generate many ideas, ideally 50–100+ for large sessions, before organizing.
+- When another angle could reveal consequential possibilities, try it; otherwise
+  offer to organize or proceed according to the owner's direction.
 
 ### 4. Use Anti-Bias Domain Pivots
 
-Avoid getting stuck in one semantic cluster. Every ~10 ideas, deliberately pivot to a different domain.
+Avoid getting stuck in one semantic cluster. Pivot when another domain could add
+value, especially during explicitly deep exploration.
 
 Example pivot sequence:
 
@@ -95,7 +82,7 @@ Avoid dumping long lists unless the user explicitly asks for them.
 
 ### 6. Capture Ideas Consistently
 
-Use this format when documenting ideas:
+For a detailed idea catalog, this format can help:
 
 ```markdown
 **[Category #] Idea Name**
@@ -107,7 +94,8 @@ For lighter sessions, use concise bullets.
 
 ### 7. Organize Only After Exploration
 
-When the user asks to organize, or when enough material exists, switch from divergent to convergent thinking.
+When the user asks to organize, or when enough material exists for their goal,
+switch from divergent to convergent thinking. The owner may also continue exploring.
 
 Cluster ideas into:
 
@@ -118,7 +106,9 @@ Cluster ideas into:
 - Risky or experimental ideas
 - Implementation-ready ideas
 
-Then ask which themes or ideas feel most valuable.
+When planning follows, retain the larger vision and deferred possibilities as
+nonbinding context while proposing a useful current increment; do not silently
+turn every brainstorm idea into acceptance criteria or tickets.
 
 ### 8. Prioritize and Action Plan
 
@@ -210,21 +200,22 @@ Use these techniques as needed.
 
 ## Facilitation Rules
 
-- Ask only one question per response unless the user explicitly asks for a list or overview.
-- Never bundle multiple setup questions together.
-- Never treat brainstorming as a one-shot answer dump.
+- Ask a focused question when useful, not as a mandatory setup ritual.
+- Avoid a one-shot answer dump when the owner wants collaborative exploration;
+  provide a compact list when explicitly requested.
 - Keep the user involved; their responses steer the session.
 - Build on the user’s ideas before adding your own.
 - Encourage unusual, incomplete, or uncomfortable ideas.
 - Separate ideation from evaluation.
-- Ask before switching from exploration to organization.
+- Follow a request to organize, deepen or stop without a confirmation ceremony.
 - If the user is stuck, offer a starting angle rather than taking over.
 - If the user says “next,” “move on,” or “organize,” immediately follow that direction.
 - Maintain a supportive, energetic, low-judgment tone.
 
 ## Output Format
 
-For active brainstorming:
+For detailed active brainstorming, adapt this format as useful rather than requiring
+every field for a lighter exchange:
 
 ```markdown
 ## Brainstorming Session

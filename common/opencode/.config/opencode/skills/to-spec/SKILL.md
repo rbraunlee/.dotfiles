@@ -25,6 +25,17 @@ new testing decisions, without restarting the requirements interview.
    the spec for approval, recording approved revision/reference when accepted.
    Spec approval is not execution kickoff; retain discussion and domain documents.
 
+Preserve a concise vision, explicit current scope and exclusions, and relevant
+deferred possibilities. Only settled current scope supplies acceptance criteria,
+testing decisions and the later ticket graph. Deferred ideas are context, not
+acceptance criteria, dependencies or permission to build; they need fresh scope
+agreement. Justify boundaries by current behavior or concrete current risk, not
+hypothetical extension machinery. For a multi-feature vision, describe a useful
+complete workflow across the necessary components without confusing MVP scope with
+delivery order. If essential support blocks delivery, surface the trade-off rather
+than dropping the owner's core outcome. Do not reopen the interview to fill a
+template.
+
 <spec-template>
 
 ## Problem Statement
@@ -34,6 +45,7 @@ The problem that the user is facing, from the user's perspective.
 ## Solution
 
 The solution to the problem, from the user's perspective.
+For a larger vision, distinguish the current useful increment from the larger goal.
 
 ## User Stories
 
@@ -75,6 +87,7 @@ A list of testing decisions that were made. Include:
 ## Out of Scope
 
 A description of the things that are out of scope for this spec.
+List relevant deferred possibilities as nonbinding context, not executable work.
 
 ## Further Notes
 

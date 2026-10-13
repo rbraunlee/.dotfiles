@@ -1,33 +1,25 @@
 ---
 name: grilling
-description: Grill the user relentlessly about a plan, decision, or idea. Use when the user wants to stress-test their thinking, or uses any 'grill' trigger phrases.
+description: Stress-test a plan, decision or idea with consequential questions. Use when the user wants to grill or stress-test their thinking.
 ---
 
-Interview the user relentlessly until you reach a shared understanding. Map this as a **design tree**: every decision branches into the decisions that hang off it.
+Test the proposal against its purpose, not every possible branch of a design tree.
+Identify the useful outcome and distinctive value first. Probe whether proposed cuts
+preserve them, whether existing tools suffice, and whether guarantees or structures
+were actually requested. Make consequential trade-offs visible without equating a
+smaller implementation with a useful MVP or adding speculative future machinery.
 
-Work the tree in **rounds**. The **frontier** is every decision whose prerequisites are already settled: the questions you can ask _now_ without guessing at answers you haven't heard yet. Ask the whole frontier in one round: number each question and give your recommended answer. Then wait for the user's answers before the next round.
+Ask only questions whose answers could materially change scope, risk, usefulness or
+reversibility. Explain a recommendation and its trade-off when helpful, but phrase
+the decision neutrally: a blanket "yes" must not silently accept several choices.
+Group related independent questions when that helps the owner; wait on prerequisite
+answers before asking downstream questions. A clear bounded request can need no
+interview. Honor an explicit request for deep stress-testing rather than truncating
+it to a default short exchange.
 
-Format a round like so:
-
-```
-❓ **Q1** - **<question title>**: <question body, might be multiple paragraphs, including multiple choices>
-
-➡️ <your recommended answer>
-
----
-
-❓ **Q2** - **<question title>**: <question body, might be multiple paragraphs, including multiple choices>
-
-➡️ <your recommended answer>
-```
-
-Word each question so "yes" accepts your recommended answer.
-
-Each round the user answers reshapes the tree: settled decisions push the frontier outward and unblock questions that depended on them. Recompute the frontier and ask the next round. A question whose answer depends on another question still open in this round belongs to a _later_ round, not this one.
-
-Finding _facts_ is your job, never the user's. Read/search the codebase yourself;
-use optional focused exploration only when helpful. Do not impose a specialist
-handoff for routine discovery. A running exploration is an unsettled prerequisite:
-only its downstream questions wait. The _decisions_ are the user's: wait for them.
-
-The session is done when the frontier is empty: every branch of the design tree visited, nothing left silently assumed. Do not act on it until the user confirms you have reached a shared understanding.
+Finding facts is your job: read/search the codebase and use optional focused
+exploration when helpful. Do not impose a specialist handoff for routine discovery.
+The decisions are the owner's; do not treat an unasked consequential choice as
+settled. Stop when the useful increment and meaningful risks are understood, not
+after exhausting every conceivable question. Confirm consequential open decisions
+before treating the plan as approved; agreement is not implementation kickoff.

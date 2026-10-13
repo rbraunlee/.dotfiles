@@ -42,6 +42,14 @@ omitted: they are another harness's UI metadata, not OpenCode agent contracts.
   ticket and consumes configured glossary/ADR paths. Domain modeling honors configured
   paths; grilling uses in-context fact
   discovery with optional rather than mandatory delegation.
+- MVP-focused planning adaptation (2026-10-13): the primary planner proposes a
+  purpose-preserving complete workflow and justified cuts, with optional exploration
+  and selective grilling rather than exhaustive design-tree interviews. `to-spec`
+  separates current acceptance from vision and deferred possibilities; `to-tickets`
+  decomposes only current approved scope when useful and respects configured tracker
+  paths. The local `brainstorm` skill now reuses conversation context and follows
+  requested depth; it is not a vendored upstream skill. These are prompt guidance,
+  not a guarantee of model behavior or a change to execution/permission contracts.
 - Supporting references not listed above are unchanged; originals can be recovered
   from the pinned commit and validated against the lock's original hashes. The
   local `brainstorm` and `import-notes` skills are not from this snapshot.
