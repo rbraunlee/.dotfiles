@@ -62,6 +62,33 @@ formatting and Black's 100-column option are unchanged. The Ollama
 integration separately requires a running local service and its configured
 `codellama` model if you use it.
 
+## OpenCode terminal
+
+Install the `opencode` executable on PATH to use the normal-mode `<leader>ot`
+(Space o t) toggle. It explicitly starts the ordinary OpenCode TUI in a right
+split, focused for input; nothing starts with the editor. Press `<C-\><C-n>`
+to leave terminal input mode, then `<leader>ot` to hide it and return to the
+source window. Press the toggle again to reopen the same running conversation;
+ordinary `:close` also retains the terminal. OpenCode's own exit ends the job;
+the next toggle starts a new terminal. Explicit buffer deletion or quitting
+Neovim does not retain the process. This is one terminal per editor instance:
+it stays in the invoking window's effective directory even if the editor
+changes directory later. Open another editor instance for a different project.
+
+Type or paste file paths and context manually into OpenCode. Nothing sends
+buffers, selections or clipboard contents automatically. Use OpenCode's native
+agent/model selection, conversation resume and permission prompts; this launcher
+does not guarantee Plan mode or prevent permitted tools from changing files.
+The existing Ollama `<leader>oo` / `<leader>oG` and Harpoon `<leader>a` remain
+separate.
+
+For an owner-authorized live check with **synthetic content only**: open a
+scratch project, press `<leader>ot`, verify the TUI and native permission/agent
+controls, type a harmless prompt, leave input mode and hide/reopen, then exit
+OpenCode and toggle to relaunch. Confirm manual context entry and the original
+project directory after changing Neovim's cwd. Real-provider requests and TUI
+rendering are not covered by the isolated automated tests.
+
 ## Searching and checking behavior
 
 `<leader>sn` finds files in the *active* Neovim config, following Stow links.

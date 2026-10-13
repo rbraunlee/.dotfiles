@@ -8,6 +8,9 @@ vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next [D]iagn
 vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Show diagnostic [E]rror messages' })
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 
+vim.keymap.set('n', '<leader>ot', require('config.opencode_terminal').toggle,
+  { desc = '[O]penCode [T]erminal (toggle)' })
+
 -- Enforce hjkl in normal mode.
 -- vim.notify with a timeout rather than <cmd>echo: echo leaves its message on
 -- the command line indefinitely, notify clears itself after 1000ms.
