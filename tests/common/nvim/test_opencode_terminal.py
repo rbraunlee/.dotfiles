@@ -105,6 +105,45 @@ assert(vim.fn.readfile(""" + repr(str(self.root / "launches")) + """)[1] == """ 
 assert(#vim.fn.readfile(""" + repr(str(self.root / "launches")) + """) == 1)
 """)
 
+    def test_double_escape_native_mapping_is_local_and_survives_relaunch(self):
+        self.run_nvim("""
+local function escape_mapping(buffer)
+  for _, map in ipairs(vim.api.nvim_buf_get_keymap(buffer, 't')) do
+    if map.lhs == '<Esc><Esc>' then return map end
+  end
+end
+assert(escape_mapping(source) == nil, 'source must not acquire a terminal mapping')
+toggle()
+local first = vim.api.nvim_get_current_buf()
+local job = vim.b[first].terminal_job_id
+local map = escape_mapping(first)
+assert(map, 'launcher terminal needs buffer-local double Escape')
+assert(map.rhs == [[<C-\\><C-N>]] and map.noremap == 1 and map.nowait == 0,
+  'double Escape must invoke native terminal-normal mode: ' .. vim.inspect(map))
+assert(vim.api.nvim_get_current_buf() == first and vim.fn.jobwait({job}, 0)[1] == -1)
+assert(escape_mapping(source) == nil)
+toggle()
+assert(vim.api.nvim_get_current_buf() == source and vim.api.nvim_buf_is_loaded(first))
+toggle()
+assert(vim.api.nvim_get_current_buf() == first and vim.b[first].terminal_job_id == job)
+assert(escape_mapping(first), 'hide/reopen must retain the mapping')
+vim.cmd.stopinsert()
+vim.cmd.close()
+vim.cmd('botright vsplit')
+vim.cmd.enew()
+local unrelated = vim.api.nvim_get_current_buf()
+vim.fn.termopen({'opencode'})
+assert(escape_mapping(unrelated) == nil, 'other terminals must not inherit the mapping')
+vim.cmd.stopinsert()
+vim.cmd.close()
+vim.api.nvim_buf_delete(unrelated, {force = true})
+vim.api.nvim_buf_delete(first, {force = true})
+toggle()
+local second = vim.api.nvim_get_current_buf()
+assert(second ~= first and escape_mapping(second), 'relaunch needs its own mapping')
+assert(escape_mapping(source) == nil)
+""")
+
     def test_ordinary_window_close_keeps_job_and_source_then_reopens(self):
         self.run_nvim("""
 vim.cmd.lcd(vim.fn.fnameescape(""" + repr(str(self.project)) + """))

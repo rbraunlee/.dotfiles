@@ -66,7 +66,7 @@ integration separately requires a running local service and its configured
 
 Install the `opencode` executable on PATH to use the normal-mode `<leader>ot`
 (Space o t) toggle. It explicitly starts the ordinary OpenCode TUI in a right
-split, focused for input; nothing starts with the editor. Press `<C-\><C-n>`
+split, focused for input; nothing starts with the editor. Press Esc twice
 to leave terminal input mode, then `<leader>ot` to hide it and return to the
 source window. Press the toggle again to reopen the same running conversation;
 ordinary `:close` also retains the terminal. OpenCode's own exit ends the job;
@@ -74,6 +74,9 @@ the next toggle starts a new terminal. Explicit buffer deletion or quitting
 Neovim does not retain the process. This is one terminal per editor instance:
 it stays in the invoking window's effective directory even if the editor
 changes directory later. Open another editor instance for a different project.
+The double-Esc mapping belongs only to this OpenCode terminal buffer; one Esc
+still reaches OpenCode after Neovim's normal mapping timeout, so a lone Esc
+may feel slightly delayed. `<C-\><C-n>` remains the immediate native fallback.
 
 Type or paste file paths and context manually into OpenCode. Nothing sends
 buffers, selections or clipboard contents automatically. Use OpenCode's native

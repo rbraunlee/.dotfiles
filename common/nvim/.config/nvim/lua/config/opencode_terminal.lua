@@ -46,6 +46,8 @@ function M.toggle()
       local job = vim.fn.termopen({ 'opencode' }, { cwd = cwd })
       if job <= 0 then error('terminal job could not start') end
       terminal = vim.api.nvim_get_current_buf()
+      vim.keymap.set('t', '<Esc><Esc>', [[<C-\><C-n>]],
+        { buffer = terminal, desc = 'Leave OpenCode terminal input mode' })
     else
       vim.api.nvim_win_set_buf(0, terminal)
     end
