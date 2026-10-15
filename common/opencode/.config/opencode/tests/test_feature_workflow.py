@@ -297,6 +297,65 @@ class DiscoveryTransportTests(unittest.TestCase):
 
 
 class AssetTests(unittest.TestCase):
+    def test_planner_proposes_purpose_preserving_mvp_without_mandatory_ceremony(self):
+        body = " ".join((CONFIG / "agents/planner.md").read_text().split("---", 2)[2].split())
+        for signal in ("smallest useful", "owner requirements", "necessary supporting",
+                       "agent recommendations", "significant cuts", "central value",
+                       "complete workflow", "vision", "deferred", "targeted question",
+                       "no interview", "no graph", "explicit", "fresh scope agreement"):
+            with self.subTest(signal=signal):
+                self.assertIn(signal, body)
+        self.assertNotIn("Obtain approval of the spec and graph", body)
+
+    def test_brainstorm_uses_context_and_respects_requested_depth(self):
+        body = " ".join((SKILLS / "brainstorm/SKILL.md").read_text().split("---", 2)[2].split())
+        for signal in ("primary conversation", "known", "only when useful", "requested depth",
+                       "broad or deep", "possibilities", "not approved requirements",
+                       "converge", "owner"):
+            with self.subTest(signal=signal):
+                self.assertIn(signal, body)
+        for compulsory in ("After all setup answers are collected", "Ask the user to confirm before starting",
+                           "Default to continuing exploration unless the user asks to wrap up",
+                           "ideally 50–100+", "Every ~10 ideas"):
+            with self.subTest(compulsory=compulsory):
+                self.assertNotIn(compulsory, body)
+
+    def test_grilling_tests_usefulness_without_exhaustive_frontier(self):
+        grilling = " ".join((SKILLS / "grilling/SKILL.md").read_text().split("---", 2)[2].split())
+        wrapper = " ".join((SKILLS / "grill-with-docs/SKILL.md").read_text().split("---", 2)[2].split())
+        for signal in ("useful", "distinctive", "existing tools", "requested",
+                       "materially change", "reversibility", "bounded", "deep"):
+            with self.subTest(signal=signal):
+                self.assertIn(signal, grilling)
+        for obsolete in ("Ask the whole frontier", "Word each question so \"yes\" accepts",
+                         "frontier is empty", "every branch of the design tree visited"):
+            with self.subTest(obsolete=obsolete):
+                self.assertNotIn(obsolete, grilling)
+        self.assertIn("consequential", wrapper)
+        self.assertIn("no interview", wrapper)
+        self.assertIn("optional", wrapper)
+
+    def test_spec_and_ticket_guidance_keep_deferred_ideas_nonbinding(self):
+        spec = " ".join((SKILLS / "to-spec/SKILL.md").read_text().split("---", 2)[2].split())
+        tickets = " ".join((SKILLS / "to-tickets/SKILL.md").read_text().split("---", 2)[2].split())
+        for signal in ("vision", "current scope", "exclusions", "deferred",
+                       "not acceptance criteria", "current behavior", "fresh scope agreement"):
+            with self.subTest(spec=signal):
+                self.assertIn(signal, spec)
+        for signal in ("only when", "complete workflow", "delivery order",
+                       "actual dependencies", "deferred", "not tickets"):
+            with self.subTest(tickets=signal):
+                self.assertIn(signal, tickets)
+        self.assertNotIn("Any prefactoring should be done first", tickets)
+
+    def test_adaptation_provenance_distinguishes_local_brainstorm_from_vendored_skills(self):
+        provenance = (CONFIG / "workflow/UPSTREAM.md").read_text()
+        self.assertIn("brainstorm", provenance)
+        self.assertIn("local", provenance)
+        self.assertIn("MVP", provenance)
+        self.assertIn("grilling", provenance)
+        self.assertIn("deferred", provenance)
+
     def test_local_delivery_contract_uses_scoped_agent_commit_attribution(self):
         contract = (SKILLS / "implement-spec/LOCAL-EXECUTION.md").read_text()
         for required in (
