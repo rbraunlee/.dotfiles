@@ -24,7 +24,7 @@ especially portal access, cancellation and multi-monitor behavior, cannot be
 established by the isolated Lua regression suite; do not assume success merely
 because the shortcut dispatch is correct.
 
-## Five-minute idle-lock request (startup/idle portion)
+## Five-minute idle lock and pre-sleep lock request
 
 Hyprland's `hyprland.start` event is the sole repository startup owner for
 `~/.config/hypr/start-hypridle.sh`; do not also enable a Hypridle user service.
@@ -40,18 +40,39 @@ lock event uses the existing guarded `hyprlock` command. This needs a working
 session/logind D-Bus lock signal and a compositor/locker supporting the Wayland
 session-lock protocol, not just installed executables. Ordinary application idle
 inhibitors remain honored. There is no screen-off, dimming, automatic suspend or
-automatic unlock timer. The before-sleep lock request remains disabled in this
-startup/idle portion; acknowledgement-aware pre-sleep configuration and its
-release-support evidence belong to the following contribution. Do not infer
-pre-sleep protection from this config. Before enabling pre-sleep locking,
-verify the installed Hypridle release supports acknowledgement-aware
-`inhibit_sleep = 3` using that exact release's help/docs/source; no minimum
-release is asserted here.
+automatic unlock timer. Before externally requested sleep, Hypridle requests
+`loginctl lock-session`, the same native lock event and guarded `lock_cmd` used
+for idle locking. The existing `hyprctl dispatch dpms on` runs after resume.
+Explicit `inhibit_sleep = 3` selects Wayland session-lock acknowledgement, not
+command launch, process existence or a fixed delay, as the readiness signal.
+
+Release evidence: the upstream **Hypridle v0.1.8** tag (commit
+`e5c01af0842bd66617f7004568df9406111d6e80`) registers
+[`general:inhibit_sleep` in src/config/ConfigManager.cpp](https://github.com/hyprwm/hypridle/blob/v0.1.8/src/config/ConfigManager.cpp#L70-L75).
+Its [src/core/Hypridle.cpp lines 103–138](https://github.com/hyprwm/hypridle/blob/v0.1.8/src/core/Hypridle.cpp#L103-L138)
+map mode 3 to `SLEEP_INHIBIT_LOCK_NOTIFY` **only when** the compositor supplies
+`hyprland-lock-notify-v1`; [onLocked() lines 398–415](https://github.com/hyprwm/hypridle/blob/v0.1.8/src/core/Hypridle.cpp#L398-L415)
+release the sleep inhibitor on the locked notification, while
+[PrepareForSleep lines 490–513](https://github.com/hyprwm/hypridle/blob/v0.1.8/src/core/Hypridle.cpp#L490-L513)
+run the before/after commands. This establishes support in that exact release,
+**not** a minimum supported version or proof about whichever binary is installed.
+Verify the installed release's matching help/source and native config parsing before
+relying on it. Without the lock-notify protocol, a working Hyprlock/session-lock
+handshake and logind's session and sleep delay inhibitor interfaces, mode 3 does
+not establish readiness; upstream warns it will not work without the protocol.
+Missing tools, failed lock requests, an existing process or a daemon launch are
+not evidence that a session is locked. The logind delay inhibitor has an OS-configured
+timeout and forced sleep can bypass it: this is **not** an unlimited or fail-closed
+veto of suspend. Recoverability and actual lock-before-sleep behavior require
+native validation, not the fake-event regressions here.
 
 Owner QA only after separately provisioning compatible tools and a recovery plan:
 confirm a single daemon in the intended session, five uninhibited idle minutes
 trigger a real lock that can be unlocked, normal inhibitors defer idle, and an
-existing locker is not relaunched. These checks can lock out the session; tests
-here use fake providers and cannot prove compositor lock readiness, logind
-delivery or native daemon parsing. No tool installation, session activation or
-live lock/suspend is performed by the package tests.
+existing locker is not relaunched. Also validate installed-version config parsing,
+logind session delivery, a real pre-sleep lock acknowledgement and display
+restoration after resume; plan a recovery path before any lock/suspend test and
+account for the OS delay timeout and forced sleep. These checks can lock out the
+session; tests here use fake providers and cannot prove compositor lock readiness,
+native daemon parsing or logind delay behavior. No tool installation, session
+activation or live lock/suspend is performed by the package tests.

@@ -10,9 +10,74 @@ import unittest
 ROOT = Path(__file__).resolve().parents[3]
 HELPER = ROOT / "linux/hypr/.config/hypr/start-hypridle.sh"
 IDLE_CONFIG = ROOT / "linux/hypr/.config/hypr/hypridle.conf"
+GUIDE = ROOT / "linux/hypr/.config/hypr/README.md"
 
 
 class IdleConfigurationTests(unittest.TestCase):
+    def test_guidance_identifies_exact_release_and_native_limits(self):
+        guide = GUIDE.read_text()
+        for expected in ("v0.1.8", "src/core/Hypridle.cpp", "hyprland-lock-notify-v1",
+                         "inhibit_sleep = 3", "forced sleep", "delay inhibitor", "Owner QA"):
+            with self.subTest(expected=expected):
+                self.assertIn(expected, guide)
+
+    def test_before_sleep_uses_acknowledgement_and_the_native_lock_event(self):
+        conf = IDLE_CONFIG.read_text()
+        general = re.findall(r"(?m)^general\s*\{([^}]*)\}", conf)
+        self.assertEqual(len(general), 1)
+        values = dict(re.findall(r"(?m)^\s*(\w+)\s*=\s*([^#\n]+)", general[0]))
+        self.assertEqual(values.get("inhibit_sleep", "").strip(), "3")
+        self.assertEqual(values.get("before_sleep_cmd", "").strip(), "loginctl lock-session")
+        self.assertEqual(values.get("lock_cmd", "").strip(), "pidof hyprlock || hyprlock")
+        self.assertEqual(values.get("after_sleep_cmd", "").strip(), "hyprctl dispatch dpms on")
+
+    def test_fake_pre_sleep_events_and_resume_keep_the_existing_locker_guard(self):
+        conf = IDLE_CONFIG.read_text()
+        general = re.findall(r"(?m)^general\s*\{([^}]*)\}", conf)
+        self.assertEqual(len(general), 1)
+        values = {name: value.strip() for name, value in
+                  re.findall(r"(?m)^\s*(\w+)\s*=\s*([^#\n]+)", general[0])}
+        # Allow-list before executing any config value: only private provider names
+        # can be resolved, and no real loginctl, hyprctl or locker can be reached.
+        self.assertEqual(values["before_sleep_cmd"], "loginctl lock-session")
+        self.assertEqual(values["lock_cmd"], "pidof hyprlock || hyprlock")
+        self.assertEqual(values["after_sleep_cmd"], "hyprctl dispatch dpms on")
+        with tempfile.TemporaryDirectory(dir="/tmp/opencode") as root:
+            bin_dir = Path(root) / "bin"
+            bin_dir.mkdir()
+            log = Path(root) / "calls"
+            for name, body in {
+                "loginctl": ('printf "sleep-request:%s:%s\\n" "$1" "$2" >> "$FAKE_LOG"\n'
+                             'test "$FAKE_REQUEST_FAIL" != yes || exit 19\n'
+                             '/bin/sh -c "$FAKE_LOCK_CMD"\n'),
+                "pidof": ('printf "check:%s\\n" "$1" >> "$FAKE_LOG"\n'
+                          'test "$FAKE_LOCKER_RUNNING" = yes\n'),
+                "hyprlock": ('printf "locker launched\\n" >> "$FAKE_LOG"\n'
+                             'test "$FAKE_LOCKER_FAIL" != yes\n'),
+                "hyprctl": 'printf "resume:%s:%s:%s\\n" "$1" "$2" "$3" >> "$FAKE_LOG"\n',
+            }.items():
+                path = bin_dir / name
+                path.write_text("#!/bin/sh\n" + body)
+                path.chmod(0o755)
+            for running, request_fail, locker_fail, status, calls in (
+                ("no", "no", "no", 0, ["sleep-request:lock-session:", "check:hyprlock", "locker launched"]),
+                ("yes", "no", "no", 0, ["sleep-request:lock-session:", "check:hyprlock"]),
+                ("no", "yes", "no", 19, ["sleep-request:lock-session:"]),
+                ("no", "no", "yes", 1, ["sleep-request:lock-session:", "check:hyprlock", "locker launched"]),
+            ):
+                log.unlink(missing_ok=True)
+                env = {"HOME": root, "PATH": str(bin_dir), "FAKE_LOG": str(log),
+                       "FAKE_LOCK_CMD": values["lock_cmd"], "FAKE_LOCKER_RUNNING": running,
+                       "FAKE_REQUEST_FAIL": request_fail, "FAKE_LOCKER_FAIL": locker_fail}
+                sleep = subprocess.run(["/bin/sh", "-c", values["before_sleep_cmd"]],
+                                       env=env, capture_output=True, text=True, timeout=5)
+                self.assertEqual(sleep.returncode, status, sleep.stderr)
+                self.assertEqual(log.read_text().splitlines(), calls)
+                resume = subprocess.run(["/bin/sh", "-c", values["after_sleep_cmd"]],
+                                        env=env, capture_output=True, text=True, timeout=5)
+                self.assertEqual(resume.returncode, 0, resume.stderr)
+                self.assertEqual(log.read_text().splitlines(), calls + ["resume:dispatch:dpms:on"])
+
     def test_idle_lock_request_is_after_five_minutes(self):
         conf = IDLE_CONFIG.read_text()
         listeners = re.findall(r"(?m)^listener\s*\{([^}]*)\}", conf)
@@ -55,9 +120,8 @@ class IdleConfigurationTests(unittest.TestCase):
 
     def test_sleep_policy_and_ordinary_inhibitors_remain_unmodified(self):
         conf = IDLE_CONFIG.read_text()
-        self.assertIn("# before_sleep_cmd = loginctl lock-session", conf)
         self.assertRegex(conf, r"(?m)^\s*after_sleep_cmd = hyprctl dispatch dpms on\b")
-        self.assertNotRegex(conf, r"(?m)^\s*(?:ignore_\w+|inhibit_sleep|before_sleep_cmd)\s*=")
+        self.assertNotRegex(conf, r"(?m)^\s*ignore_\w+\s*=")
 
 
 class IdleStartupTests(unittest.TestCase):
