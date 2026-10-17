@@ -59,11 +59,13 @@ if case == "screenshot" then
 elseif case == "startup" then
     assert(#startup == 1, "startup handler changed")
     startup[1]()
-    assert(#launched == 4, "autostart commands changed")
+    assert(#launched == 6, "autostart commands changed")
     assert(launched[1] == "waybar" and launched[2] == "hyprpaper"
         and launched[3] == "mako"
-        and launched[4] == 'gsettings set org.gnome.desktop.interface color-scheme "prefer-dark"',
-        "autostart must not gain capture, fallback or lock commands")
+        and launched[4] == 'gsettings set org.gnome.desktop.interface color-scheme "prefer-dark"'
+        and launched[5] == "/usr/lib/polkit-kde-authentication-agent-1"
+        and launched[6] == '"$HOME/.config/hypr/start-hypridle.sh"',
+        "autostart must retain desktop programs and delegate idle startup to one helper")
     assert(env.XCURSOR_SIZE == "24" and env.HYPRCURSOR_SIZE == "24"
         and env.LIBVA_DRIVER_NAME == "nvidia" and env.__GLX_VENDOR_LIBRARY_NAME == "nvidia",
         "environment changed")
@@ -85,7 +87,7 @@ elseif case == "desktop" then
     assert(by_key["SUPER + SHIFT + j"].value.direction == "down")
     assert(by_key["SUPER + 0"].value.workspace == 10)
     assert(by_key["SUPER + SHIFT + 0"].value.workspace == 10
-        and by_key["SUPER + SHIFT + 0"].value.follow == false)
+        and by_key["SUPER + SHIFT + 0"].value.follow == true)
     assert(by_key["SUPER + mouse:272"].kind == "drag")
     assert(by_key["SUPER + mouse:273"].kind == "resize")
     assert(monitor.mode == "preferred" and monitor.position == "auto"
