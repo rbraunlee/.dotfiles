@@ -30,6 +30,9 @@ class HyprlandShortcutTests(unittest.TestCase):
     def test_other_keybindings_layout_and_device_settings_are_preserved(self):
         self.run_probe("desktop")
 
+    def test_dictation_toggle_uses_a_single_non_conflicting_shortcut(self):
+        self.run_probe("dictation")
+
 
 if __name__ == "__main__":
     unittest.main()

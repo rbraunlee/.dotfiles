@@ -1,5 +1,9 @@
 # Hyprland screenshot shortcut
 
+Super+Ctrl+D dispatches `voxtype record toggle` for local dictation. See
+`linux/voxtype/README.md` for unactivated host setup, focus risk and proposed
+scoped backup/rollback. It neither launches a daemon at login nor submits text.
+
 Super+Ctrl+Shift+S dispatches `flameshot gui` for interactive selection and
 annotation. This binding does not start the tray application, save or upload a
 capture, or fall back to Grim/Slurp/Swappy. Flameshot owns cancellation (Escape).

@@ -1,0 +1,27 @@
+# Hyprland owns the toggle; no evdev input-group privileges needed.
+engine = "whisper"
+state_file = "auto"
+
+[hotkey]
+enabled = false
+
+[whisper]
+mode = "local"
+model = "large-v3-turbo"
+language = "en"
+
+[output]
+mode = "type"
+driver_order = ["wtype"]
+fallback_to_clipboard = false
+auto_submit = false
+# OpenCode sends on Enter; use Shift+Enter for transcribed line breaks.
+shift_enter_newlines = true
+
+[output.notification]
+on_recording_start = true
+on_recording_stop = true
+on_transcription = false
+
+[text]
+smart_auto_submit = false

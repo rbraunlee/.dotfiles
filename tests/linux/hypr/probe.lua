@@ -59,10 +59,11 @@ if case == "screenshot" then
 elseif case == "startup" then
     assert(#startup == 1, "startup handler changed")
     startup[1]()
-    assert(#launched == 4, "autostart commands changed")
+    assert(#launched == 5, "autostart commands changed")
     assert(launched[1] == "waybar" and launched[2] == "hyprpaper"
         and launched[3] == "mako"
-        and launched[4] == 'gsettings set org.gnome.desktop.interface color-scheme "prefer-dark"',
+        and launched[4] == 'gsettings set org.gnome.desktop.interface color-scheme "prefer-dark"'
+        and launched[5] == "/usr/lib/polkit-kde-authentication-agent-1",
         "autostart must not gain capture, fallback or lock commands")
     assert(env.XCURSOR_SIZE == "24" and env.HYPRCURSOR_SIZE == "24"
         and env.LIBVA_DRIVER_NAME == "nvidia" and env.__GLX_VENDOR_LIBRARY_NAME == "nvidia",
@@ -76,7 +77,7 @@ elseif case == "desktop" then
         assert(not by_key[binding.key], "duplicate key: " .. binding.key)
         by_key[binding.key] = binding.dispatch
     end
-    assert(#binds == 41, "keybindings added or removed: " .. #binds)
+    assert(#binds == 42, "keybindings added or removed: " .. #binds)
     assert(by_key["SUPER + T"].value == "ghostty")
     assert(by_key["SUPER + E"].value == "dolphin")
     assert(by_key["SUPER + SPACE"].value == "wofi --show drun")
@@ -85,7 +86,7 @@ elseif case == "desktop" then
     assert(by_key["SUPER + SHIFT + j"].value.direction == "down")
     assert(by_key["SUPER + 0"].value.workspace == 10)
     assert(by_key["SUPER + SHIFT + 0"].value.workspace == 10
-        and by_key["SUPER + SHIFT + 0"].value.follow == false)
+        and by_key["SUPER + SHIFT + 0"].value.follow == true)
     assert(by_key["SUPER + mouse:272"].kind == "drag")
     assert(by_key["SUPER + mouse:273"].kind == "resize")
     assert(monitor.mode == "preferred" and monitor.position == "auto"
@@ -99,6 +100,15 @@ elseif case == "desktop" then
         "device settings changed")
     assert(curves == 5 and animations == 10 and rules == 4,
         "animations or window rules changed")
+elseif case == "dictation" then
+    local by_key = {}
+    for _, binding in ipairs(binds) do
+        assert(not by_key[binding.key], "duplicate key: " .. binding.key)
+        by_key[binding.key] = binding.dispatch
+    end
+    local toggle = by_key["SUPER + CTRL + d"]
+    assert(toggle and toggle.kind == "command", "missing non-conflicting dictation shortcut")
+    assert(toggle.value == "voxtype record toggle", "shortcut must toggle without submitting")
 else
     error("unknown probe case: " .. tostring(case))
 end

@@ -157,6 +157,9 @@ hl.bind(mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
 -- Screenshot
 hl.bind(mainMod .. " + CTRL + SHIFT + s", hl.dsp.exec_cmd(screenshot))
 
+-- Toggle local dictation; Voxtype types into whichever field has focus at output time.
+hl.bind(mainMod .. " + CTRL + d", hl.dsp.exec_cmd("voxtype record toggle"))
+
 --------------------------------
 ---- WINDOWS AND WORKSPACES ----
 --------------------------------
