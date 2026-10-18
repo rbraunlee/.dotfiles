@@ -100,6 +100,13 @@ operation is required but not permitted, stop and report the blocker; do not
 substitute a different command or broaden grants. Absence of an inapplicable
 operation is not a failure. Do not checksum credential-bearing exports.
 Use dedicated glob/read for standards discovery, never shell `find`.
+
+The additional permission-policy audit in the following paragraph applies only
+when the explicit review scope concerns OpenCode permission/security configuration.
+For ordinary product-code reviews, the Location/Git checks above remain required,
+but effective-rule projections, negative-rule evidence and activation provenance
+are not prerequisites. Never probe prohibited operations to establish permissions.
+
 Confirm the negative rule outcomes for worktree add/remove/prune, Git commits,
 output-writing variants, unapproved evidence operations and remote writes. Unrelated
 external directories must resolve to deny (not ask); the six reviewed managed
@@ -121,6 +128,9 @@ validated. Missing, mismatched, stale or unverified evidence, or any denied/ask
 required positive, blocks review: stop and record it. A source fixture or
 Coordinator conclusion cannot substitute for actual-Location evidence. Never
 retry a denied query via another command or grant stdin Python to get a response.
+
+The safeguards below apply to every review, whether or not a permission-policy
+audit is in scope.
 Never emit raw `/api/config`, complete agent responses, or resolved credentials.
 Even with independent Tester evidence, move and confirm your own Location/Git
 identity and execute your own permitted read-only status, listing, ancestry and
