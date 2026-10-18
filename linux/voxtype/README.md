@@ -1,86 +1,95 @@
-# Local English dictation — staged, not activated
+# Local English dictation (Hyprland + Voxtype)
 
-Stow `linux/voxtype` supplies `~/.config/voxtype/config.toml`. Hyprland's
-Super+Ctrl+D calls `voxtype record toggle`; the daemon (not Hyprland) owns
-recording. The internal evdev hotkey is disabled, so no `input` group change is
-required for the toggle. `state_file = "auto"` supports external toggling.
-Whisper uses the installed large-v3-turbo model, English and **local** mode;
-the host's installed `voxtype-cuda` build is used unchanged. No remote endpoint,
-model binary, audio source ID or runtime state belongs in this package.
+Stow package `linux/voxtype` contains `~/.config/voxtype/config.toml` and
+`~/.config/systemd/user/voxtype.service`. The separate `linux/hypr` package
+binds Super+Ctrl+D to `voxtype record toggle`; it does **not** start a daemon.
+The systemd user unit starts `/usr/bin/voxtype -q daemon` at
+`graphical-session.target`, stops with that target, and restarts on failure.
+It has no `ydotool` dependency. Voxtype's internal evdev hotkey is disabled;
+the shortcut needs no `input` group membership.
 
-Output is type mode with wtype only; there is no clipboard fallback, automatic
-Enter or spoken smart-submit. Multi-line transcripts request Shift+Enter rather
-than Enter. Recording start/stop notifications signal recording/transcribing;
-this is configured behavior, not yet verified live. The transcript is delivered
-to the **field focused at output time**, not to an OpenCode session. Release the
-shortcut modifiers, keep focus in the draft, and inspect before manually sending.
-An alternate focused field may receive the text if focus changes.
+## Installed host and behavior (2026-10-18)
 
-## Inspected host (2026-10-18; read-only)
+- Installed `voxtype-cuda 1.1.0-1` reports `voxtype 1.1.0+g67a503e`;
+  `wtype 0.4-2` and `pipewire-alsa 1:1.6.9-1` are installed. The existing
+  large-v3-turbo model is local; prior owner logs report CUDA on RTX 4090.
+  `voxtype setup gpu --status` alone reported an unknown active backend.
+  No model binaries, runtime state or host-specific audio source IDs are tracked.
+- The installed-release settings use `whisper.mode = "local"`, English and
+  large-v3-turbo. Type output uses **wtype only**; no clipboard fallback,
+  remote endpoint, smart submit or automatic Enter is configured. Transcribed
+  newlines request Shift+Enter. Recording start/stop notifications are enabled.
+  `state_file = "auto"` supports the external toggle.
+- The transcript goes to the field **focused at output time**, not a named
+  OpenCode session. Release shortcut modifiers, keep focus in the draft, check
+  the text and submit manually. Another focused field can receive output.
+- The owner reported synthetic live dictation working (“Works perfectly”)
+  after a toggle/feedback/draft/multiline/no-submit/changed-focus checklist.
+  This is owner-reported success, not independent item-by-item observation.
+  Since then the owner enabled a permanent Voxtype user service: read-only
+  checks found it enabled/running with one daemon and no `Wants`, while the
+  temporary QA unit is inactive. Its currently active HOME unit is a **regular
+  file**, not a link to this package. No agent restarted it or repeated a
+  microphone, typing or clipboard test after that switch. Post-switch draft
+  behavior, authorized restart and **subsequent-login** startup remain owner QA.
 
-`voxtype --version` reports `1.1.0+g67a503e` (`voxtype-cuda 1.1.0-1`), not
-the previously staged v1.1.1 Vulkan release. `voxtype setup check` finds
-large-v3-turbo installed (1549 MB), wl-copy available and no typing drivers;
-`pipewire-alsa 1:1.6.9-1` is installed. `wtype`, `ydotool` and `eitype` are
-absent. Prior owner logs (not reproduced here) report the CUDA model loaded on
-RTX 4090 and successful transcription **to clipboard**, not draft insertion.
-`voxtype setup gpu --status` reports unknown active backend in its simple-build
-inventory; it does not override the owner's CUDA runtime logs. The current
-regular-file HOME config has hotkey off, English large-v3-turbo, default local
-mode and type output, but clipboard fallback on, no typing driver installed,
-no Shift+Enter or start/stop notification enabled. The new config explicitly
-sets `whisper.mode = "local"` (not the old `whisper.backend` key), restricts
-`driver_order` to wtype and disables both clipboard fallback and submit paths.
-`voxtype -c linux/voxtype/.config/voxtype/config.toml config get --json`
-confirmed the installed binary resolves the local, hotkey, output, fallback,
-auto-submit, Shift+Enter and smart-submit values. No recording was initiated.
-`systemctl --user` reports voxtype disabled/inactive; the vendor unit is
-`/usr/lib/systemd/user/voxtype.service` (ticket 02 owns persistence). HOME's
-Hyprland Lua is a symlink into the **dirty protected main checkout**; this
-ticket does not edit or reload it. Compared with prior commit `0917b449`,
-the shortcut and Stow layout are reusable; its v1.1.1/Vulkan provisioning
-claims and `whisper.backend` setting are not.
+The existing HOME Voxtype config symlink was migrated from the preserved
+ticket-01 checkout to the human-merged, byte-identical
+`~/.dotfiles/linux/voxtype/.config/voxtype/config.toml`. Its original link is
+preserved under `~/.local/state/voxtype-dotfiles-backups/` in a private
+timestamped `*-main-link-*` directory; preserve the old ticket worktree as
+historical evidence. HOME Hyprland is an independent copy with the owner's
+Super+Q close-key change; this package does not overwrite it. The new tracked
+unit is for **future human adoption after merge**, not the active HOME unit.
 
-## Proposed activation, pending separate owner agreement
+## Setup and safe adoption after human merge
 
-**Do not run this against HOME until the owner approves this exact reversible
-method, a safe backup location and supervised QA.** First install only the
-demonstrably missing `wtype` after approval (do not reinstall Voxtype, download
-a model, alter input groups or modify other services). Recheck `command -v
-wtype` and run `voxtype setup check`. Select a timestamped, owner-private
-directory outside Stow and Git, chmod 700, and record original link targets,
-permissions, service enabled/active states and checksums. Copy the existing
-regular HOME Voxtype config there with restrictive permissions. Back up the
-HOME Hyprland Lua *symlink itself* and a copy of its current target content,
-including the owner's uncommitted close-key change. Confirm the two target
-paths and absence of intervening edits immediately before activation.
+Install prerequisites on an appropriate Arch host (`voxtype-cuda`, `wtype`,
+`pipewire-alsa`, an existing local model, and working PipeWire/Wayland); do not
+reinstall or download the model on this already configured host. Check
+`voxtype --version`, `command -v wtype`, `voxtype setup check`, and inspect
+`systemctl --user status voxtype.service` and the two HOME paths before any
+change. Do not assume this unit works with a different installed release.
+Neither fixture tests nor a configured unit prove live audio/GPU/typing.
 
-Move **only** the existing Voxtype config out of the way into that backup,
-dry-run `stow -n -d <feature-worktree>/linux -t "$HOME" voxtype`, then stow
-only `voxtype` (never `--adopt`). For Hyprland, replace only the HOME
-`hyprland.lua` link with an owner-approved independent copy of its backed-up
-live target plus this one toggle binding; do not modify the normal checkout,
-switch branches, restow Hyprland or replace the owner's close-key change. After
-comparing that copy against the backed-up source, reload only Hyprland using its
-targeted reload command. This is a **proposal**, not an instruction to mutate
-HOME without agreement; the exact overlay and backup location need owner signoff.
-If the copied config drifts from the repository version, resolve explicitly
-rather than replacing either file. Ticket 02 owns authorized Voxtype service
-activation/restart and persistence; record prior state for restoration.
+On the owner-approved adoption window, **after merging this change into
+`~/.dotfiles`**, inspect and compare both package targets with their HOME
+counterparts; note the current unit's enabled/running state and exact link
+targets and hashes. Save the existing regular HOME unit (with its mode) in a
+new owner-private (0700) timestamped backup under
+`~/.local/state/voxtype-dotfiles-backups/`; preserve the HOME config link
+itself too. Check for intervening edits immediately before each move. From
+`~/.dotfiles`, dry-run `stow -n -d linux -t "$HOME" voxtype` first: an existing
+regular service file is an expected **conflict**, not an invitation to `--adopt`
+or force overwrite. Only once backed up, move **that one service file** out of
+the way and rerun the dry run, then `stow -d linux -t "$HOME" voxtype`. Check
+both HOME symlinks resolve into the merged `~/.dotfiles/linux/voxtype` package;
+if the config link differs, back it up and resolve its content/target before
+continuing. No broad Stow, Hyprland relink, input-group change or new daemon.
 
-To disable/rollback after an approved activation, cancel any recording under
-owner supervision, stop/disable only the Voxtype user service **if this feature
-started/enabled it**, remove only the dedicated toggle via restoration of the
-backed-up HOME Hyprland symlink (checking for newer edits first), and reload
-only Hyprland. Unstow only Voxtype after verifying the link still belongs to
-this package; restore the backed-up regular config with its original mode and
-contents, then restore the original service state. Preserve all intervening
-user edits, never force-unstow or discard model/runtime data.
+The running owner unit is left alone by merely adding the tracked file. At a
+separately owner-chosen restart/verification time, check for recording activity
+first; then use `systemctl --user daemon-reload`, confirm enabled state and unit
+resolution, and explicitly authorize any `systemctl --user restart
+voxtype.service`. Confirm only one daemon remains and use harmless synthetic
+draft/no-submit and alternate-focus checks; the owner checks startup again at
+the **next login**. Do not claim persistence from `WantedBy` or `enabled`
+alone. Do not start the inactive temporary QA unit as a second daemon.
 
-Before claiming delivery, arrange owner-supervised synthetic microphone QA:
-confirm toggle start/stop and visible feedback, local English output into an
-empty OpenCode draft, multi-line Shift+Enter without submission, and a separate
-harmless field receiving output after changing focus. An absent typing driver
-should fail rather than silently write the clipboard. Neither the config tests
-nor owner-reported clipboard success prove microphone, GPU, notifications,
-Wayland typing, focus routing, or no-submit behavior of the installed binary.
+## Disable / rollback (only for changes actually performed)
+
+Preserve any newer edits before rollback and record the current enabled/active
+state. If intentionally disabling dictation, end any recording under owner
+supervision and stop/disable only `voxtype.service`; leave other services and
+model/runtime data alone. If undoing a service-link adoption, after checking
+the HOME unit link still points to this package, unlink only that link and
+restore its backed-up regular file with its original mode/content; reload the
+user manager and restore its **recorded** enabled/active state at an agreed
+time, without an unrequested restart. If undoing the config-link migration,
+verify the link still targets `~/.dotfiles` and no user edits were made, then
+restore the saved original symlink **at the HOME path** (its relative target is
+not valid when read from the backup directory); keep the ticket worktree until
+that decision is final. Otherwise preserve the current merged config link.
+To undo the shortcut, restore the separately backed-up HOME Hyprland copy only
+after checking for newer edits, then perform a targeted reload with owner
+agreement. Never force-unstow, delete backups, or overwrite unrelated changes.

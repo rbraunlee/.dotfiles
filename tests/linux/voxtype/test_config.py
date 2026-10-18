@@ -10,6 +10,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[3]
 PACKAGE = ROOT / "linux/voxtype"
 CONFIG = PACKAGE / ".config/voxtype/config.toml"
+SERVICE = PACKAGE / ".config/systemd/user/voxtype.service"
 
 
 class DictationConfigTests(unittest.TestCase):
@@ -54,3 +55,31 @@ class DictationConfigTests(unittest.TestCase):
             )
             self.assertNotEqual(result.returncode, 0)
             self.assertEqual(target.read_text(), "owner config\n")
+
+    def test_stow_links_config_and_service_and_refuses_existing_service(self):
+        with tempfile.TemporaryDirectory(prefix="voxtype-unit-stow-") as home:
+            config = Path(home) / ".config/voxtype/config.toml"
+            unit = Path(home) / ".config/systemd/user/voxtype.service"
+            config.parent.mkdir(parents=True)
+            unit.parent.mkdir(parents=True)
+            result = subprocess.run(
+                ["stow", "-d", str(ROOT / "linux"), "-t", home, "voxtype"],
+                capture_output=True, text=True, check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertTrue(config.is_symlink())
+            self.assertEqual(config.resolve(), CONFIG)
+            self.assertTrue(unit.is_symlink())
+            self.assertEqual(unit.resolve(), SERVICE)
+
+        with tempfile.TemporaryDirectory(prefix="voxtype-unit-conflict-") as home:
+            unit = Path(home) / ".config/systemd/user/voxtype.service"
+            unit.parent.mkdir(parents=True)
+            unit.write_text("owner service\n")
+            result = subprocess.run(
+                ["stow", "-d", str(ROOT / "linux"), "-t", home, "voxtype"],
+                capture_output=True, text=True, check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            self.assertEqual(unit.read_text(), "owner service\n")
+            self.assertFalse(unit.is_symlink())
