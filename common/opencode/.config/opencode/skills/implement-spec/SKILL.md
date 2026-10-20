@@ -67,5 +67,6 @@ OpenCode adaptation of the pinned Matt Pocock skill; provenance and changes are 
 ## Final gate and handoff
 
 Use the final verification, repair and publication procedure in LOCAL-EXECUTION.md
-against the full spec and exact integration commit. One feature-level gate and,
-when authorized, one feature PR; never routine per-ticket PRs or human approvals.
+against the full spec and exact integration commit. One feature-level gate; never
+routine per-ticket PRs or human approvals. In `Ship mode: pr`, `/ship` creates the
+one feature PR after human QA; the Coordinator does not open it.

@@ -35,8 +35,9 @@ This is a prompt-driven skill, not an installer or deterministic launcher.
    feature-branch pushes and **one feature PR** to a named host/repository. Never
    authorize automatic `main` merge. Record the **Ship mode** line used by the
    owner-invoked `/ship`: `Ship mode: local-merge` (attributed local `--no-ff` merge
-   into `main` after explicit QA approval) or `Ship mode: pr` (push the feature
-   branch, open one PR; the owner merges). Record preview policy (off unless requested).
+   into `main` after explicit QA approval) or `Ship mode: pr` (`/ship` pushes the
+   feature branch and opens the one feature PR; the owner merges). Record preview
+   policy (off unless requested).
    External-directory access stays permission-controlled; don't grant broad access
    merely to silence prompts. Normal local delivery uses native V2 `permissions:`.
 7. Present the setup draft for confirmation, then write only the agreed documents.

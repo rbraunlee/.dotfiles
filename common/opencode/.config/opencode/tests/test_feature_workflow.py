@@ -621,9 +621,10 @@ class AssetTests(unittest.TestCase):
 
     def test_ship_retires_records_first_then_non_force_cleanup(self):
         skill = self.ship_skill()
+        retire = skill[skill.index("## 5. Retire"):]
         order = ("`decisions.md` and `approval.md`", "sha256sum", "docs/plans/README.md",
                  "non-force `git worktree remove", "`git branch -d`")
-        positions = [skill.index(signal) for signal in order]
+        positions = [retire.index(signal) for signal in order]
         self.assertEqual(positions, sorted(positions), order)
         for signal in ("gitignored", "never `-D`", "never `--force`", "live OpenCode session",
                        "kept and reported", "owned and unambiguous"):
@@ -648,6 +649,26 @@ class AssetTests(unittest.TestCase):
                        "restart", "kept and why"):
             with self.subTest(signal=signal):
                 self.assertIn(signal, skill)
+
+    def test_ship_pr_mode_is_idempotent_and_the_only_pr_owner(self):
+        skill = self.ship_skill()
+        view = "gh pr view <feature-branch> --json state,headRefOid,mergeCommit,url"
+        cases = ("No PR:", "Open PR:", "Merged PR:")
+        for signal in (view, *cases, "`gh pr create` once", "do not create another",
+                       "`headRefOid` equals the recorded tested SHA", "update local `main`",
+                       "merging the PR was the QA approval", "squash or rebase",
+                       "kept and reported (expected)"):
+            with self.subTest(signal=signal):
+                self.assertIn(signal, skill)
+        positions = [skill.index(view)] + [skill.index(case) for case in cases]
+        self.assertEqual(positions, sorted(positions))
+        # Exactly one PR owner: delivery hands off, /ship creates the feature PR.
+        owner = "`/ship` creates the one feature PR after human QA"
+        for path in ("implement-spec/LOCAL-EXECUTION.md", "implement-spec/SKILL.md"):
+            text = " ".join((SKILLS / path).read_text().split())
+            with self.subTest(owner=path):
+                self.assertIn(owner, text)
+                self.assertNotIn("create/update **one** feature PR", text)
 
     def test_ship_mode_comes_from_project_profile(self):
         skill = self.ship_skill()

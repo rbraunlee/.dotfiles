@@ -105,10 +105,11 @@ start a duplicate worker merely because the original CLI disconnected.
 
 ## Publication and handoff
 
-- On pass, verify integration HEAD still equals the tested/reviewed SHA. If hosted
-  publication is explicitly enabled by setup, push only the feature branch and
-  create/update **one** feature PR with spec/ticket references. Otherwise report
-  the local branch and SHA. Permission prompts still apply: denied publication is
+- On pass, verify integration HEAD still equals the tested/reviewed SHA and report
+  the local feature branch and SHA. The Coordinator opens no PR: in `Ship mode: pr`,
+  `/ship` creates the one feature PR after human QA (with spec/ticket references).
+  If hosted publication is explicitly enabled by setup, the Coordinator may push
+  only the feature branch. Permission prompts still apply: denied publication is
   a reported blocker, not permission to broaden rules. No automatic `main` merge.
 - Report baseline, final SHA, acceptance coverage, commands/outcomes, independent
   review, deviations, risks and a short project-appropriate QA checklist. Provide

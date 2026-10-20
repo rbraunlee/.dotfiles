@@ -14,7 +14,7 @@ and `../implement-spec/LOCAL-EXECUTION.md` (commit attribution) first.
 
 Read the line `Ship mode: local-merge | pr` (one of the two values) in
 `docs/agents/project.md`. If it is missing or has any other value, stop and ask;
-do not guess a default.
+do not guess a default. In `pr` mode, check the PR state (§4) before pre-flight.
 
 ## 2. Pre-flight (read-only)
 
@@ -71,11 +71,23 @@ git -c commit.gpgsign=false merge --no-ff --no-gpg-sign '<feature-branch>' -m $'
 On conflict or any merge failure run `git merge --abort`, confirm `main` is clean
 at its previous SHA and report; never resolve conflicts on `main`. Never push `main`.
 
-**pr:** push only the feature branch and create one PR with `gh pr create`
-(permission prompts still apply; a denial is a reported blocker). Stop there.
-Retirement happens only after the PR is merged: a later `/ship` run detects the
-merged PR (`gh pr view <feature-branch> --json state,mergeCommit`) and, after the
-owner has updated local `main`, retires. The owner merges; never `gh pr merge`.
+**pr:** `/ship` is the only PR owner and is idempotent. Before pre-flight, check
+for an existing PR: `gh pr view <feature-branch> --json state,headRefOid,mergeCommit,url`
+("no pull requests found" means none; any other error: stop and report).
+
+- No PR: after pre-flight and QA approval, push only the feature branch and run
+  `gh pr create` once (permission prompts still apply; a denial is a reported
+  blocker). Report the URL and stop.
+- Open PR: report its URL, do not create another, stop.
+- Merged PR: verify `headRefOid` equals the recorded tested SHA; otherwise stop
+  and report. If `mergeCommit` is not yet in local `main` (`git merge-base
+  --is-ancestor <mergeCommit> main`), ask the owner to update local `main` and
+  stop. Otherwise skip the main-ancestor check and the approval question
+  (merging the PR was the QA approval) and retire. After a squash or rebase
+  merge, `git branch -d` may refuse; that branch is kept and reported (expected).
+- Closed unmerged PR: stop and report.
+
+Retirement happens only after the PR is merged. The owner merges; never `gh pr merge`.
 
 ## 5. Retire (in this order)
 

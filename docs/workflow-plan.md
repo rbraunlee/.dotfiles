@@ -134,8 +134,9 @@ spec requirement or fail when combined.
 
 - Do not create slice PRs by default. Tickets, integration history and commits
   retain internal traceability without adding remote lifecycle work.
-- When the project uses hosted review, create one feature PR from the verified
-  integration branch. Otherwise report the local branch and exact commit.
+- The Coordinator reports the verified local feature branch and exact commit and
+  opens no PR. When the project uses hosted review (`Ship mode: pr`), `/ship`
+  creates the one feature PR after human QA (see §11).
 - Include the baseline, final commit, acceptance coverage, check/review results,
   deviations, risks and a short QA checklist.
 - Provide a project-appropriate way to inspect or run the feature. Do not leave a
@@ -246,9 +247,13 @@ Delivery of a feature ends in this order. Later steps never replace earlier ones
      `main` in the primary checkout. A conflict is aborted and reported, never
      resolved on `main`. Nothing is pushed; the owner pushes. Agents merge
      `main` only this way.
-   - **`pr` (GitHub-hosted repos):** only the feature branch is pushed and one PR
-     opened. The owner merges the PR; a later `/ship` run detects the merged PR
-     and retires the feature.
+   - **`pr` (GitHub-hosted repos):** `/ship` is the only PR owner and first
+     checks for an existing feature PR. With none, it pushes only the feature
+     branch and creates one PR after approval; an open PR is reported, never
+     duplicated. The owner merges the PR; a later `/ship` run verifies the merged
+     PR head equals the tested SHA, treats the merge as the QA approval and
+     retires (after a squash/rebase merge, `git branch -d` may refuse and the
+     branch is kept and reported).
 4. Retirement, executed by `/ship` without a further ceremony: first preserve the
    feature's `decisions.md` and `approval.md` in the primary checkout's
    `docs/plans/<feature>/` without ever overwriting (copy and hash-verify only a
