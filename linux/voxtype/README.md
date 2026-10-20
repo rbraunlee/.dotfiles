@@ -2,9 +2,14 @@
 
 Stow package `linux/voxtype` contains `~/.config/voxtype/config.toml` and
 `~/.config/systemd/user/voxtype.service`. The separate `linux/hypr` package
-binds Super+Ctrl+D to `voxtype record toggle`; it does **not** start a daemon.
-The systemd user unit starts `/usr/bin/voxtype -q daemon` at
-`graphical-session.target`, stops with that target, and restarts on failure.
+binds Super+Ctrl+D to `voxtype record toggle`; its `hyprland.start` handler
+imports allowlisted Wayland/display session variables and starts the existing
+`voxtype.service` through systemd, without invoking a daemon directly or
+restarting an already active service. The systemd user unit runs
+`/usr/bin/voxtype -q daemon` when started, stops with
+`graphical-session.target`, and restarts on failure. `WantedBy` alone does
+not activate the unit when that target is inactive under `start-hyprland`;
+the explicit Hyprland start covers that path without starting the target.
 It has no `ydotool` dependency. Voxtype's internal evdev hotkey is disabled;
 the shortcut needs no `input` group membership.
 
@@ -52,6 +57,28 @@ reinstall or download the model on this already configured host. Check
 change. Do not assume this unit works with a different installed release.
 Neither fixture tests nor a configured unit prove live audio/GPU/typing.
 
+The HOME Hyprland config is an **independent copy**, not a Stow link. After
+the human merge, at an owner-approved adoption window, compare
+`~/.dotfiles/linux/hypr/.config/hypr/hyprland.lua` with
+`~/.config/hypr/hyprland.lua`; keep the owner's Super+Q close binding and any
+other newer HOME edits. Back up the HOME copy privately (0700 directory),
+record its hash/mode, then merge only the new `hyprland.start` systemd command
+into that copy if it is not already present. Recheck for intervening edits
+before saving. Do **not** overwrite, relink, or Stow the HOME Hyprland copy,
+reload the desktop, or restart the service merely to adopt this change.
+If the user unit is currently running, `systemctl --user start` at the next
+login is idempotent; it does not create a second daemon or replace the running
+one. The startup handler does not run on a configuration reload.
+
+At the next owner-controlled login (not in automated tests), check that the
+Hyprland session has the intended Wayland/display variables, that the user
+manager received them, and that `systemctl --user status voxtype.service`
+reports the existing unit active with only one daemon. Verify that no
+`graphical-session.target` activation was needed; try a harmless draft
+dictation toggle with the owner's consent and confirm focus/no-submit behavior.
+If import or start failed, inspect user-service logs rather than launching a
+second daemon. These are human QA, not proven by fixture tests.
+
 On the owner-approved adoption window, **after merging this change into
 `~/.dotfiles`**, inspect and compare both package targets with their HOME
 counterparts; note the current unit's enabled/running state and exact link
@@ -90,6 +117,11 @@ verify the link still targets `~/.dotfiles` and no user edits were made, then
 restore the saved original symlink **at the HOME path** (its relative target is
 not valid when read from the backup directory); keep the ticket worktree until
 that decision is final. Otherwise preserve the current merged config link.
-To undo the shortcut, restore the separately backed-up HOME Hyprland copy only
-after checking for newer edits, then perform a targeted reload with owner
-agreement. Never force-unstow, delete backups, or overwrite unrelated changes.
+To undo this startup hook in the independent HOME Hyprland copy, first compare
+against the private backup and check for newer edits; remove only the added
+systemd startup command or restore the full backup **only if** no newer edits
+would be lost. Do not stop/restart a healthy running service as part of this
+config rollback; the prior enabled unit remains as it was. To undo the
+shortcut separately, restore its backed-up HOME config only after checking
+for newer edits; arrange a targeted reload at an owner-approved time. Never
+force-unstow, delete backups, or overwrite unrelated changes.

@@ -59,7 +59,7 @@ if case == "screenshot" then
 elseif case == "startup" then
     assert(#startup == 1, "startup handler changed")
     startup[1]()
-    assert(#launched == 5, "autostart commands changed")
+    assert(#launched == 6, "autostart commands changed")
     assert(launched[1] == "waybar" and launched[2] == "hyprpaper"
         and launched[3] == "mako"
         and launched[4] == 'gsettings set org.gnome.desktop.interface color-scheme "prefer-dark"'
@@ -71,6 +71,15 @@ elseif case == "startup" then
     local count = 0
     for _ in pairs(env) do count = count + 1 end
     assert(count == 4, "unexpected global environment override")
+elseif case == "voxtype_startup" then
+    assert(#startup == 1 and #launched == 0, "config load/reload must not launch a daemon")
+    startup[1]()
+    assert(#launched == 6, "expected one new startup dispatch")
+    for i = 1, 5 do
+        assert(not launched[i]:find("voxtype") and not launched[i]:find("systemctl"),
+            "existing autostart dispatches changed")
+    end
+    print(launched[6])
 elseif case == "desktop" then
     local by_key = {}
     for _, binding in ipairs(binds) do
@@ -81,7 +90,7 @@ elseif case == "desktop" then
     assert(by_key["SUPER + T"].value == "ghostty")
     assert(by_key["SUPER + E"].value == "dolphin")
     assert(by_key["SUPER + SPACE"].value == "wofi --show drun")
-    assert(by_key["SUPER + C"].kind == "close")
+    assert(by_key["SUPER + Q"].kind == "close")
     assert(by_key["SUPER + h"].value.direction == "left")
     assert(by_key["SUPER + SHIFT + j"].value.direction == "down")
     assert(by_key["SUPER + 0"].value.workspace == 10)

@@ -28,6 +28,9 @@ hl.on("hyprland.start", function()
 	hl.exec_cmd("mako")
 	hl.exec_cmd('gsettings set org.gnome.desktop.interface color-scheme "prefer-dark"') -- for GTK4 apps
 	hl.exec_cmd("/usr/lib/polkit-kde-authentication-agent-1")
+	-- start is idempotent for an already active user unit; do not spawn a second daemon.
+	-- Use a shell so the start is conditional on importing the Wayland session first.
+	hl.exec_cmd("sh -c 'systemctl --user import-environment WAYLAND_DISPLAY DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE HYPRLAND_INSTANCE_SIGNATURE && systemctl --user start voxtype.service'")
 end)
 
 -------------------------------
