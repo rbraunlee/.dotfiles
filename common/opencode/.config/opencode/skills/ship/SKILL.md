@@ -60,7 +60,8 @@ reply proceeds; anything else (silence, a question, "maybe") means stop. Invokin
 **local-merge:** from the primary checkout, create one merge commit with a plain
 Conventional Commit subject and the attribution from LOCAL-EXECUTION.md (own
 actual model in the trailer). `--no-ff` on the command line overrides a configured
-`merge.ff=only`:
+`merge.ff=only`. The template's `feat(<package>)` is an example: choose the
+correct Conventional type and scope for the feature.
 
 ```sh
 GIT_AUTHOR_NAME='OpenCode Agent' GIT_AUTHOR_EMAIL='opencode-agent@users.invalid' \
@@ -106,8 +107,10 @@ Retirement happens only after the PR is merged. The owner merges; never `gh pr m
    leftover ticket/repair/verification worktrees; never `--force`.
 4. `git branch -d` the feature and ticket branches; never `-D`.
 
-Dirty, ambiguous or in-use worktrees and branches (a live OpenCode session located
-there, per `opencode session list` or the owner) are kept and reported. A refused
+Dirty, ambiguous or in-use worktrees and branches are kept and reported. A
+worktree is in use (a live OpenCode session) if any session's directory is inside
+it or equals it, per `opencode session list --format json`; if the listing is unavailable or lacks directories, ask the owner rather than
+assume the worktree is free. A refused
 `git branch -d` is kept and reported. Delete other working artifacts of the feature
 (scratch dirs, session dumps, manifests) only when owned and unambiguous.
 
@@ -115,7 +118,8 @@ there, per `opencode session list` or the owner) are kept and reported. A refuse
 
 Always state: the merge SHA (or PR URL); "`main` is N commits ahead of `origin/main`
 — you push" (`git rev-list --count origin/main..main`); live configs changed; new
-files needing re-stow with the exact command (dry run `stow -n -v -R -t ~ -d <group>
-<package>`, then `stow -R -t ~ -d <group> <package>`); any reload or restart needed
+files needing re-stow with the exact command, run from the primary checkout root
+because `-d <group>` is relative (dry run `cd <primary-checkout> && stow -n -v -R
+-t ~ -d <group> <package>`, then `stow -R -t ~ -d <group> <package>`); any reload or restart needed
 (e.g. `hyprctl reload`, restart Waybar, `tmux source-file ~/.config/tmux/tmux.conf`,
 restart OpenCode); and anything kept and why.

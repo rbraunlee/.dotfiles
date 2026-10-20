@@ -270,8 +270,11 @@ Delivery of a feature ends in this order. Later steps never replace earlier ones
    merge messages plain Conventional Commits with the `Agent:` attribution
    trailer as the ceiling (see the project profile).
 6. **Abandoned features:** an explicit owner decision "abandon, keep nothing"
-   retires the feature exactly like a merge does — delete worktree, branch and
-   artifacts; dead work must not linger either way.
+   retires the feature's worktrees and artifacts like a merge does; dead work
+   must not linger either way. Its unmerged branches are not in `main` history,
+   so `git branch -d` refuses them: deleting them needs the owner's explicit
+   force-delete decision (`git branch -D` is owner-run or explicitly
+   owner-approved, never an agent default).
 
 Retirement does not retroactively pass any gate. A merged-but-not-fully-verified
 feature stays recorded as such in its `approval.md`.

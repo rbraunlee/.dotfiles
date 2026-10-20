@@ -360,7 +360,8 @@ class AssetTests(unittest.TestCase):
     def test_ship_is_registered_as_local_skill_and_ends_delivery_handoffs(self):
         provenance = " ".join((CONFIG / "workflow/UPSTREAM.md").read_text().split())
         for signal in ("`ship`", "/ship", "not from this snapshot", "Ship mode",
-                       "command text, not the current branch"):
+                       "command text, not the current branch",
+                       "now the agent path to `main` (see the 2026-10-20 entry)"):
             with self.subTest(provenance=signal):
                 self.assertIn(signal, provenance)
         handoff = "after human QA, run `/ship <feature>`"
@@ -619,6 +620,7 @@ class AssetTests(unittest.TestCase):
                        "GIT_COMMITTER_EMAIL='opencode-agent@users.invalid'",
                        "Agent: OpenCode / <actual model name>", "LOCAL-EXECUTION.md",
                        "merge.ff=only", "Conventional Commit", "git merge --abort",
+                       "correct Conventional type and scope for the feature",
                        "never resolve conflicts on `main`", "Never push `main`"):
             with self.subTest(signal=signal):
                 self.assertIn(signal, skill)
@@ -631,7 +633,9 @@ class AssetTests(unittest.TestCase):
         positions = [retire.index(signal) for signal in order]
         self.assertEqual(positions, sorted(positions), order)
         for signal in ("gitignored", "never `-D`", "never `--force`", "live OpenCode session",
-                       "kept and reported", "owned and unambiguous"):
+                       "kept and reported", "owned and unambiguous",
+                       "opencode session list --format json", "directory is inside it",
+                       "unavailable or lacks directories, ask the owner"):
             with self.subTest(signal=signal):
                 self.assertIn(signal, skill)
 
@@ -650,7 +654,8 @@ class AssetTests(unittest.TestCase):
         skill = self.ship_skill()
         for signal in ("merge SHA", "commits ahead of", "you push", "live configs changed",
                        "stow -R -t ~ -d <group> <package>", "hyprctl reload", "tmux source-file",
-                       "restart", "kept and why"):
+                       "restart", "kept and why", "from the primary checkout root",
+                       "cd <primary-checkout> && stow -n -v -R -t ~ -d <group> <package>"):
             with self.subTest(signal=signal):
                 self.assertIn(signal, skill)
 

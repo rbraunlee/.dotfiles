@@ -34,6 +34,8 @@ omitted: they are another harness's UI metadata, not OpenCode agent contracts.
 - Full-feature independent Tester and fresh Reviewer gate the immutable final
   commit. At most two repair passes; user owns QA/`main` merge. One authorized
   feature PR or local handoff; no routine ticket PRs or intermediate approval gates.
+  Later: owner-invoked `/ship` after QA is now the agent path to `main` (see the
+  2026-10-20 entry) and creates the one feature PR in `pr` mode.
 - `code-review` retains independent Spec/Standards axes and the smell baseline but
   the fresh Reviewer performs both directly with read-only Git. No nested review
   agents, copied diff, three-dot-only gate or spec-axis skip. Explicit supplied
