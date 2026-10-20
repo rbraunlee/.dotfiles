@@ -10,7 +10,8 @@ are defined in [CONTEXT.md](CONTEXT.md).
 
 The objective is a short path from an approved outcome to a QA-ready feature:
 one planning context, one feature kickoff, autonomous dependency-aware execution,
-one final feature gate and human control of the merge to `main`.
+one final feature gate and human control of the merge to `main` (owner-invoked
+`/ship` after explicit QA approval).
 
 ## 1. Operating principles
 
@@ -26,7 +27,8 @@ one final feature gate and human control of the merge to `main`.
   build a launcher, ledger or scheduler before observed failures justify one.
 - Run trusted local development only. No production data/access, deployment or
   security-isolation claim is authorized.
-- The user owns final QA and the merge into `main`.
+- The user owns final QA. Agents merge into `main` only via the owner-invoked
+  `/ship` after explicit QA approval.
 
 ## 2. One-time project setup
 
@@ -130,15 +132,16 @@ spec requirement or fail when combined.
 
 ## 6. Publication and human QA
 
-- Do not create slice PRs by default. Tickets, branches and commits retain internal
-  traceability without adding remote lifecycle work.
+- Do not create slice PRs by default. Tickets, integration history and commits
+  retain internal traceability without adding remote lifecycle work.
 - When the project uses hosted review, create one feature PR from the verified
   integration branch. Otherwise report the local branch and exact commit.
 - Include the baseline, final commit, acceptance coverage, check/review results,
   deviations, risks and a short QA checklist.
 - Provide a project-appropriate way to inspect or run the feature. Do not leave a
   persistent preview running unless requested or authorized by project policy.
-- The user performs final QA and merges into `main`. Agents do not deploy.
+- The user performs final QA. Agents merge into `main` only via the owner-invoked
+  `/ship` after explicit QA approval. Agents do not deploy.
 
 ## 7. Authorization and escalation
 
@@ -157,7 +160,8 @@ Pause and ask the user only for:
 - destructive work outside owned generated worktrees;
 - remote publication not covered by project setup;
 - exhausted repair attempts or unresolved blocking verification;
-- final QA and merge into `main`.
+- final QA and the explicit approval that lets the owner-invoked `/ship` merge
+  into `main`.
 
 Use native OpenCode V2 `permissions:` rules. Retain explicit protection for secrets,
 external directories, destructive commands and `main`; do not put all ordinary
@@ -182,7 +186,7 @@ deterministic state tooling only in response to a demonstrated recurring failure
 
 | Role | Responsibility |
 | --- | --- |
-| User | Approves the planning package, starts feature execution, resolves contract changes, performs QA and merges to `main` |
+| User | Approves the planning package, starts feature execution, resolves contract changes, performs QA and invokes `/ship` to merge to `main` |
 | Coordinator | Owns one feature graph, worktree dispatch, frontier scheduling, integration, final gate and handoff |
 | Implementer | Owns one ticket or fast-path change, including TDD, checks and focused commits |
 | Merger | Integrates completed ticket branches and verifies the resulting feature state |
@@ -218,38 +222,46 @@ Adoption succeeds when one approved kickoff reaches a QA-ready feature without
 routine user intervention; concurrent agents remain in their assigned worktrees;
 dependencies and integration are correct; normal commands do not repeatedly ask;
 final independent verification covers the full spec; interrupted work is recoverable;
-and `main`, production and deployment remain human-controlled.
+and `main` (reached only via owner-invoked `/ship` after explicit QA approval),
+production and deployment remain human-controlled.
 
 ## 11. Feature end-of-life: QA → merge → retire
 
 Delivery of a feature ends in this order. Later steps never replace earlier ones.
 
-1. The Implementer/Merger hands back the check report: baseline and final commit,
-   checks, review outcome, deviations and limits. Automated gates never claim
-   human QA.
+1. The Coordinator hands back the check report: baseline and final (tested and
+   reviewed) commit, checks, review outcome, deviations, limits and a QA
+   checklist, ending with "after human QA, run `/ship <feature>`". Automated
+   gates never claim human QA.
 2. The owner performs final human QA manually.
-3. On the owner's explicit approval:
-   - **Local repo (default here):** the approved merge into `main` happens, and
-     in the same turn retirement executes. Agents still never merge protected
-     `main` on their own — this step is owner-performed or owner-directed.
-   - **GitHub-hosted repos:** the merge of the feature PR *is* the approval plus
-     retirement trigger; no separate cleanup authorization is needed.
-4. Retirement, executed without a further ceremony, removes the feature's
-   integration/ticket worktrees, ticket branches and working artifacts
-   (scratch dirs, session dumps, manifests, preserved originals). Merged commits
-   remain recoverable in Git history.
+3. The owner runs `/ship <feature>` from the primary checkout. Its read-only
+   pre-flight stops, changing nothing, unless the recorded tested/reviewed SHA
+   still equals the feature branch tip and the feature worktree and the primary
+   `main` checkout are clean. It then states the QA checklist and the live configs
+   the merge will change, and proceeds only on the owner's explicit approval
+   reply; invoking the command alone is not QA approval. The project profile's
+   `Ship mode` selects the path:
+   - **`local-merge` (default here):** one attributed `git merge --no-ff` into
+     `main` in the primary checkout. A conflict is aborted and reported, never
+     resolved on `main`. Nothing is pushed; the owner pushes. Agents merge
+     `main` only this way.
+   - **`pr` (GitHub-hosted repos):** only the feature branch is pushed and one PR
+     opened. The owner merges the PR; a later `/ship` run detects the merged PR
+     and retires the feature.
+4. Retirement, executed by `/ship` without a further ceremony: first copy and
+   hash-verify the feature's `decisions.md` and `approval.md` into the primary
+   checkout's `docs/plans/<feature>/` and keep one index line in
+   `docs/plans/README.md`; then non-force-remove the feature's integration/ticket
+   worktrees and `git branch -d` its branches, and remove other owned,
+   unambiguous working artifacts (scratch dirs, session dumps, manifests,
+   preserved originals). Dirty, ambiguous or in-use items are kept and reported.
+   Merged commits remain recoverable in Git history.
 5. What survives: the feature's `decisions.md` and `approval.md` under
-   `docs/plans/<feature>/`, plus one index line in `docs/plans/README.md`.
-6. **QA note:** after the merge, record at most two lines in that feature's
-   `approval.md`. Template:
-
-       ## Human QA — approved for merge
-       Performed (owner): <checks> — date: <YYYY-MM-DD> — merged: <SHA>
-
-   Keep commit and merge messages plain Conventional Commits; the `Agent:`
-   attribution trailer is the ceiling (see the project profile). QA status lives
-   in `approval.md`, not in Git metadata.
-7. **Abandoned features:** an explicit owner decision "abandon, keep nothing"
+   `docs/plans/<feature>/`, plus one index line in `docs/plans/README.md`. The
+   merge commit made after explicit QA approval is the QA record; keep commit and
+   merge messages plain Conventional Commits with the `Agent:` attribution
+   trailer as the ceiling (see the project profile).
+6. **Abandoned features:** an explicit owner decision "abandon, keep nothing"
    retires the feature exactly like a merge does — delete worktree, branch and
    artifacts; dead work must not linger either way.
 
