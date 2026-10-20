@@ -109,10 +109,11 @@ Retirement happens only after the PR is merged. The owner merges; never `gh pr m
 
 Dirty, ambiguous or in-use worktrees and branches are kept and reported. A
 worktree is in use (a live OpenCode session) if any session's directory is inside
-it or equals it, per `opencode session list --format json`; if the listing is unavailable or lacks directories, ask the owner rather than
-assume the worktree is free. A refused
-`git branch -d` is kept and reported. Delete other working artifacts of the feature
-(scratch dirs, session dumps, manifests) only when owned and unambiguous.
+it or equals it, per `opencode session list --format json`; if the listing is
+unavailable or lacks directories, ask the owner rather than assume the worktree
+is free. A refused `git branch -d` is kept and reported. Delete other working
+artifacts of the feature (scratch dirs, session dumps, manifests) only when owned
+and unambiguous.
 
 ## 6. Report
 
@@ -120,6 +121,6 @@ Always state: the merge SHA (or PR URL); "`main` is N commits ahead of `origin/m
 — you push" (`git rev-list --count origin/main..main`); live configs changed; new
 files needing re-stow with the exact command, run from the primary checkout root
 because `-d <group>` is relative (dry run `cd <primary-checkout> && stow -n -v -R
--t ~ -d <group> <package>`, then `stow -R -t ~ -d <group> <package>`); any reload or restart needed
-(e.g. `hyprctl reload`, restart Waybar, `tmux source-file ~/.config/tmux/tmux.conf`,
-restart OpenCode); and anything kept and why.
+-t ~ -d <group> <package>`, then `stow -R -t ~ -d <group> <package>`); any reload
+or restart needed (e.g. `hyprctl reload`, restart Waybar, `tmux source-file
+~/.config/tmux/tmux.conf`, restart OpenCode); and anything kept and why.
