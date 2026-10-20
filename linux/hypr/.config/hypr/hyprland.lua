@@ -29,6 +29,9 @@ hl.on("hyprland.start", function()
 	hl.exec_cmd('gsettings set org.gnome.desktop.interface color-scheme "prefer-dark"') -- for GTK4 apps
 	hl.exec_cmd("/usr/lib/polkit-kde-authentication-agent-1")
 	hl.exec_cmd('"$HOME/.config/hypr/start-hypridle.sh"')
+	-- start is idempotent for an already active user unit; do not spawn a second daemon.
+	-- Use a shell so the start is conditional on importing the Wayland session first.
+	hl.exec_cmd("sh -c 'systemctl --user import-environment WAYLAND_DISPLAY DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE HYPRLAND_INSTANCE_SIGNATURE && systemctl --user start voxtype.service'")
 end)
 
 -------------------------------
@@ -116,7 +119,7 @@ hl.device({ name = "epic-mouse-v1", sensitivity = -0.5 })
 local mainMod = "SUPER" -- Sets "Windows" key as main modifier
 
 hl.bind(mainMod .. " + T", hl.dsp.exec_cmd(terminal))
-hl.bind(mainMod .. " + C", hl.dsp.window.close())
+hl.bind(mainMod .. " + Q", hl.dsp.window.close())
 hl.bind(
 	mainMod .. " + M",
 	hl.dsp.exec_cmd("command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'")
@@ -157,6 +160,9 @@ hl.bind(mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
 
 -- Screenshot
 hl.bind(mainMod .. " + CTRL + SHIFT + s", hl.dsp.exec_cmd(screenshot))
+
+-- Toggle local dictation; Voxtype types into whichever field has focus at output time.
+hl.bind(mainMod .. " + CTRL + d", hl.dsp.exec_cmd("voxtype record toggle"))
 
 --------------------------------
 ---- WINDOWS AND WORKSPACES ----

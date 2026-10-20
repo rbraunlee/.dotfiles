@@ -45,5 +45,18 @@ class NetworkPresentationTests(unittest.TestCase):
         )
 
 
+class WorkspaceInteractionTests(unittest.TestCase):
+    def test_workspace_numbers_use_native_click_switching_and_lua_scroll_dispatch(self):
+        self.assertEqual(
+            rendered_config()["hyprland/workspaces"],
+            {
+                "format": " {icon} ",
+                "format-icons": {"1": "1", "2": "2", "3": "3", "4": "4", "5": "5"},
+                "on-scroll-up": 'hyprctl dispatch \'hl.dsp.focus({ workspace = "e+1" })\'',
+                "on-scroll-down": 'hyprctl dispatch \'hl.dsp.focus({ workspace = "e-1" })\'',
+            },
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

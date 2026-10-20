@@ -1,4 +1,15 @@
-# Hyprland screenshot shortcut
+# Hyprland startup and shortcuts
+
+At `hyprland.start` (not on config reload), the existing autostarts run and
+Hyprland imports `WAYLAND_DISPLAY`, `DISPLAY`, `XDG_CURRENT_DESKTOP`,
+`XDG_SESSION_TYPE`, and `HYPRLAND_INSTANCE_SIGNATURE` into the systemd user
+manager, then calls `systemctl --user start voxtype.service` only if import
+succeeds. This starts the existing managed unit even when
+`graphical-session.target` is inactive under `start-hyprland`; it does not
+start that target, restart an active service, or spawn an unmanaged daemon.
+Super+Ctrl+D still dispatches only `voxtype record toggle`, never submits text.
+Super+Q closes the focused window. See `linux/voxtype/README.md` for safe
+post-merge adoption of the independent HOME Hyprland copy and next-login QA.
 
 Super+Ctrl+Shift+S dispatches `flameshot gui` for interactive selection and
 annotation. This binding does not start the tray application, save or upload a
