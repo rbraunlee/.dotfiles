@@ -31,6 +31,10 @@ running only read-only commands:
   `handoff.md`, or the `<sha>` the owner passes from the handoff report) equals the
   feature branch tip (`git rev-parse <feature-branch>`).
 - The feature branch's worktree is clean.
+- `main` is an ancestor of the feature tip (`git merge-base --is-ancestor main
+  <feature-branch>`). If not, main moved since the feature was verified and the
+  merge result would be untested yet go live via Stow; the owner can rebase and
+  re-verify through the normal delivery workflow.
 
 On any failure, ambiguity or missing record: stop and change nothing; report what
 failed. Never `git switch` or `git checkout` `main`, and never fix state yourself.

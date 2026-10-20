@@ -236,7 +236,8 @@ Delivery of a feature ends in this order. Later steps never replace earlier ones
 2. The owner performs final human QA manually.
 3. The owner runs `/ship <feature>` from the primary checkout. Its read-only
    pre-flight stops, changing nothing, unless the recorded tested/reviewed SHA
-   still equals the feature branch tip and the feature worktree and the primary
+   still equals the feature branch tip, `main` is an ancestor of that tip (main
+   has not moved since verification) and the feature worktree and the primary
    `main` checkout are clean. It then states the QA checklist and the live configs
    the merge will change, and proceeds only on the owner's explicit approval
    reply; invoking the command alone is not QA approval. The project profile's

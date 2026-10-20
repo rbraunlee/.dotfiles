@@ -588,6 +588,17 @@ class AssetTests(unittest.TestCase):
             with self.subTest(signal=signal):
                 self.assertIn(signal, skill)
 
+    def test_ship_preflight_stops_when_main_moved_since_verification(self):
+        # A merge onto a moved main is untested and goes live via Stow.
+        skill = self.ship_skill()
+        for signal in ("git merge-base --is-ancestor main <feature-branch>",
+                       "main moved since the feature was verified", "untested",
+                       "rebase and re-verify"):
+            with self.subTest(signal=signal):
+                self.assertIn(signal, skill)
+        self.assertLess(skill.index("git merge-base --is-ancestor main"),
+                        skill.index("stop and change nothing"))
+
     def test_ship_requires_explicit_owner_qa_approval_after_stated_steps(self):
         skill = self.ship_skill()
         for signal in ("QA checklist", "live configs", "symlink into the primary checkout",
