@@ -619,6 +619,17 @@ class AssetTests(unittest.TestCase):
             with self.subTest(signal=signal):
                 self.assertIn(signal, skill)
 
+    def test_ship_retire_never_overwrites_primary_decision_records(self):
+        # docs/ is gitignored: an overwritten primary record is unrecoverable.
+        skill = self.ship_skill()
+        for signal in ("Never overwrite", "target is missing", "copy it and verify with `sha256sum`",
+                       "identical", "exists and differs", "stop retiring",
+                       "keep the worktree and branches", "report both paths",
+                       "do not merge their contents"):
+            with self.subTest(signal=signal):
+                self.assertIn(signal, skill)
+        self.assertLess(skill.index("exists and differs"), skill.index("non-force `git worktree remove"))
+
     def test_ship_reports_after_merge_steps(self):
         skill = self.ship_skill()
         for signal in ("merge SHA", "commits ahead of", "you push", "live configs changed",

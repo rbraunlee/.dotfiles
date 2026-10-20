@@ -248,10 +248,12 @@ Delivery of a feature ends in this order. Later steps never replace earlier ones
    - **`pr` (GitHub-hosted repos):** only the feature branch is pushed and one PR
      opened. The owner merges the PR; a later `/ship` run detects the merged PR
      and retires the feature.
-4. Retirement, executed by `/ship` without a further ceremony: first copy and
-   hash-verify the feature's `decisions.md` and `approval.md` into the primary
-   checkout's `docs/plans/<feature>/` and keep one index line in
-   `docs/plans/README.md`; then non-force-remove the feature's integration/ticket
+4. Retirement, executed by `/ship` without a further ceremony: first preserve the
+   feature's `decisions.md` and `approval.md` in the primary checkout's
+   `docs/plans/<feature>/` without ever overwriting (copy and hash-verify only a
+   missing target; an identical target needs nothing; a differing target stops
+   retirement, keeping worktree and branches, for the owner to reconcile) and
+   keep one index line in `docs/plans/README.md`; then non-force-remove the feature's integration/ticket
    worktrees and `git branch -d` its branches, and remove other owned,
    unambiguous working artifacts (scratch dirs, session dumps, manifests,
    preserved originals). Dirty, ambiguous or in-use items are kept and reported.

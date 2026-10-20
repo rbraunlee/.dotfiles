@@ -75,10 +75,16 @@ owner has updated local `main`, retires. The owner merges; never `gh pr merge`.
 
 ## 5. Retire (in this order)
 
-1. Copy the feature's `decisions.md` and `approval.md` into the primary checkout's
-   `docs/plans/<feature>/` (the tracker's feature root). `docs/` is gitignored, so
-   records that exist only in the feature worktree vanish with it. Verify each copy
-   with `sha256sum` (source and copy must match); on mismatch stop retiring.
+1. Preserve the feature's `decisions.md` and `approval.md` in the primary
+   checkout's `docs/plans/<feature>/` (the tracker's feature root). `docs/` is
+   gitignored, so records that exist only in the feature worktree vanish with it,
+   and an overwritten primary record is unrecoverable. Never overwrite. For each
+   file: if the primary target is missing, copy it and verify with `sha256sum`
+   (source and copy must match); if source and target are identical, do nothing;
+   if the target exists and differs (it normally holds the original record with
+   appended entries), stop retiring: keep the worktree and branches and report
+   both paths so the owner reconciles them; do not merge their contents yourself.
+   A `sha256sum` mismatch after copying also stops retiring.
 2. Add or keep exactly one index line for the feature in `docs/plans/README.md`.
 3. Use non-force `git worktree remove <exact-path>` for the feature worktree and any
    leftover ticket/repair/verification worktrees; never `--force`.
