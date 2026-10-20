@@ -25,4 +25,5 @@ This is the OpenCode adaptation of the pinned upstream skill (see `../../workflo
    fresh Reviewer against the request/acceptance as the spec source, following
    LOCAL-EXECUTION.md. Apply its bounded repair rules; no routine intermediate gate.
 5. Hand back the verified branch/commit, results and QA instructions. Publish only
-   when configured. The user owns QA and merge into `main`.
+   when configured. The user owns QA; end the handoff with: after human QA, run
+   `/ship <feature>`.

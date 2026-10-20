@@ -33,7 +33,10 @@ This is a prompt-driven skill, not an installer or deterministic launcher.
    No production access or deployment is authorized. Worktrees are not sandboxes.
 6. Record publication policy: local-only by default, or explicitly authorized
    feature-branch pushes and **one feature PR** to a named host/repository. Never
-   authorize automatic `main` merge. Record preview policy (off unless requested).
+   authorize automatic `main` merge. Record the **Ship mode** line used by the
+   owner-invoked `/ship`: `Ship mode: local-merge` (attributed local `--no-ff` merge
+   into `main` after explicit QA approval) or `Ship mode: pr` (push the feature
+   branch, open one PR; the owner merges). Record preview policy (off unless requested).
    External-directory access stays permission-controlled; don't grant broad access
    merely to silence prompts. Normal local delivery uses native V2 `permissions:`.
 7. Present the setup draft for confirmation, then write only the agreed documents.

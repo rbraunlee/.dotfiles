@@ -44,4 +44,4 @@ worktrees. Preserve uncertain or interrupted work and reconcile state before res
 Escalate product/contract/security changes, human-only access, unapproved remote
 publication and exhausted repairs. Never deploy or merge into `main`. Worktrees are
 trusted local organization, not security isolation. Hand back exact references and
-a short QA checklist; the user owns final QA and merge.
+a short QA checklist; the user owns final QA and runs `/ship` to merge.

@@ -54,6 +54,9 @@
     { "action": "shell", "resource": "git push *", "effect": "ask" },
     { "action": "shell", "resource": "gh pr create *", "effect": "ask" },
     { "action": "shell", "resource": "gh pr merge *", "effect": "deny" },
+    // Agents reach main only via the owner-invoked /ship (agents/shipper.md).
+    // Patterns match command text, not the current branch, so no global
+    // `git merge` rule can enforce that: Merger needs feature-branch merges.
     { "action": "shell", "resource": "git switch main *", "effect": "deny" },
     { "action": "shell", "resource": "git checkout main *", "effect": "deny" },
     { "action": "shell", "resource": "git branch -f main *", "effect": "deny" },

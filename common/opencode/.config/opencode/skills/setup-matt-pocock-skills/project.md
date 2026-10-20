@@ -34,11 +34,14 @@ required checks as TODO and call setup ready. Never record secret values.
 - Dependencies/provisioning: <development instructions, no secrets>
 - Publication: local-only; hosted issue writes/pushes/one feature PR require explicit
   setup authorization, including host/repository and permitted operations
-- Protected branch: `main`; final merge belongs to the user
+- Protected branch: `main`; agents reach it only via owner-invoked `/ship` after
+  explicit human QA approval
+- Ship mode: local-merge | pr (choose one; `/ship` stops and asks if missing)
 - Persistent preview: off unless requested
 
 ## Human QA
 
 - Inspect/run: <project-specific commands>
 - QA checklist: <smoke scenarios>
-- Feature worktree retained until human acceptance; uncertain work is preserved
+- Feature worktree retained until human acceptance and `/ship` retirement;
+  uncertain work is preserved

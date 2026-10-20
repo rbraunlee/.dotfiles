@@ -162,9 +162,10 @@ def discover_agents(binary, *, fixture_parent="/tmp/opencode"):
         for source in (CONFIG / "agents").glob("*.md"):
             shutil.copyfile(source, agents / source.name)
         env = fixture_environment(location)
-        expected = {name: ("primary" if name in ("orchestrator", "planner") else "subagent",
+        expected = {name: ("primary" if name in ("orchestrator", "planner", "shipper") else "subagent",
                            (CONFIG / "agents" / f"{name}.md").read_text().split("---", 2)[2].strip())
-                    for name in ("orchestrator", "planner", "builder", "merger", "tester", "reviewer")}
+                    for name in ("orchestrator", "planner", "builder", "merger", "tester", "reviewer",
+                                 "shipper")}
         with owned_server(binary, location, env) as (url, password):
             opener = build_opener(ProxyHandler({}))
             auth = base64.b64encode(f"opencode:{password}".encode()).decode("ascii")
@@ -356,6 +357,21 @@ class AssetTests(unittest.TestCase):
         self.assertIn("grilling", provenance)
         self.assertIn("deferred", provenance)
 
+    def test_ship_is_registered_as_local_skill_and_ends_delivery_handoffs(self):
+        provenance = " ".join((CONFIG / "workflow/UPSTREAM.md").read_text().split())
+        for signal in ("`ship`", "/ship", "not from this snapshot", "Ship mode",
+                       "command text, not the current branch"):
+            with self.subTest(provenance=signal):
+                self.assertIn(signal, provenance)
+        handoff = "after human QA, run `/ship <feature>`"
+        for path in ("implement-spec/LOCAL-EXECUTION.md", "implement/SKILL.md"):
+            with self.subTest(handoff=path):
+                self.assertIn(handoff, " ".join((SKILLS / path).read_text().split()))
+        graph = " ".join((SKILLS / "implement-spec/SKILL.md").read_text().split())
+        self.assertNotIn("retain the branch/traceability", graph)
+        self.assertIn("delete its ticket branch with `git branch -d`", graph)
+        self.assertIn("Keep the feature worktree for QA", graph)
+
     def test_local_delivery_contract_uses_scoped_agent_commit_attribution(self):
         contract = (SKILLS / "implement-spec/LOCAL-EXECUTION.md").read_text()
         for required in (
@@ -369,7 +385,7 @@ class AssetTests(unittest.TestCase):
                 self.assertIn(required, contract)
 
     def test_commit_creating_roles_read_shared_attribution_contract(self):
-        for role in ("orchestrator", "builder", "merger", "refactorer", "cleaner"):
+        for role in ("orchestrator", "builder", "merger", "refactorer", "cleaner", "shipper"):
             with self.subTest(role=role):
                 body = (CONFIG / "agents" / f"{role}.md").read_text().split("---", 2)[2]
                 self.assertIn("LOCAL-EXECUTION.md", body)
@@ -535,14 +551,93 @@ class AssetTests(unittest.TestCase):
 
     def test_commands_keep_one_primary_context(self):
         for name in ("setup-matt-pocock-skills", "grill-with-docs", "to-spec",
-                     "to-tickets", "implement", "implement-spec"):
+                     "to-tickets", "implement", "implement-spec", "ship"):
             path = CONFIG / "commands" / f"{name}.md"
             text = path.read_text()
             self.assertIn("subagent: false", frontmatter(path))
             self.assertIn("$ARGUMENTS", text)
             self.assertNotIn("!`", text)  # No permission-bypassing shell expansion.
-            expected = "orchestrator" if name.startswith("implement") else "planner"
+            expected = ("orchestrator" if name.startswith("implement")
+                        else "shipper" if name == "ship" else "planner")
             self.assertIn(f"agent: {expected}", frontmatter(path))
+
+    def test_ship_command_loads_owner_invoked_primary_shipper(self):
+        command = (CONFIG / "commands/ship.md").read_text()
+        self.assertIn("Load `ship`", command)
+        self.assertIn("not QA approval", command)
+        shipper = CONFIG / "agents/shipper.md"
+        self.assertRegex(frontmatter(shipper), r"(?m)^mode: primary$")
+        entry = SKILLS / "ship/SKILL.md"
+        self.assertIn("name: ship", frontmatter(entry))
+        self.assertIn("description:", frontmatter(entry))
+        body = " ".join(shipper.read_text().split("---", 2)[2].split())
+        for signal in ("explicit QA approval", "git merge --abort", "command text, not the current branch",
+                       "Merger legitimately runs `git merge --no-ff`", "not containment"):
+            with self.subTest(agent=signal):
+                self.assertIn(signal, body)
+
+    def ship_skill(self):
+        return " ".join((SKILLS / "ship/SKILL.md").read_text().split("---", 2)[2].split())
+
+    def test_ship_preflight_is_read_only_and_stops_on_any_mismatch(self):
+        skill = self.ship_skill()
+        for signal in ("read-only", "tested/reviewed SHA", "equals the feature branch tip",
+                       "git worktree list --porcelain", "branch is `main`", "primary checkout",
+                       "never from inside the feature worktree", "clean",
+                       "stop and change nothing", "Never `git switch` or `git checkout` `main`"):
+            with self.subTest(signal=signal):
+                self.assertIn(signal, skill)
+
+    def test_ship_requires_explicit_owner_qa_approval_after_stated_steps(self):
+        skill = self.ship_skill()
+        for signal in ("QA checklist", "live configs", "symlink into the primary checkout",
+                       "live immediately", "re-stow", "question tool", "explicit approval",
+                       "Invoking `/ship` alone is not QA approval", "anything else"):
+            with self.subTest(signal=signal):
+                self.assertIn(signal, skill)
+        self.assertLess(skill.index("explicit approval"),
+                        skill.index("git -c commit.gpgsign=false merge --no-ff"))
+
+    def test_ship_merge_is_attributed_no_ff_and_aborts_on_conflict(self):
+        skill = self.ship_skill()
+        for signal in ("git -c commit.gpgsign=false merge --no-ff --no-gpg-sign",
+                       "GIT_COMMITTER_EMAIL='opencode-agent@users.invalid'",
+                       "Agent: OpenCode / <actual model name>", "LOCAL-EXECUTION.md",
+                       "merge.ff=only", "Conventional Commit", "git merge --abort",
+                       "never resolve conflicts on `main`", "Never push `main`"):
+            with self.subTest(signal=signal):
+                self.assertIn(signal, skill)
+
+    def test_ship_retires_records_first_then_non_force_cleanup(self):
+        skill = self.ship_skill()
+        order = ("`decisions.md` and `approval.md`", "sha256sum", "docs/plans/README.md",
+                 "non-force `git worktree remove", "`git branch -d`")
+        positions = [skill.index(signal) for signal in order]
+        self.assertEqual(positions, sorted(positions), order)
+        for signal in ("gitignored", "never `-D`", "never `--force`", "live OpenCode session",
+                       "kept and reported", "owned and unambiguous"):
+            with self.subTest(signal=signal):
+                self.assertIn(signal, skill)
+
+    def test_ship_reports_after_merge_steps(self):
+        skill = self.ship_skill()
+        for signal in ("merge SHA", "commits ahead of", "you push", "live configs changed",
+                       "stow -R -t ~ -d <group> <package>", "hyprctl reload", "tmux source-file",
+                       "restart", "kept and why"):
+            with self.subTest(signal=signal):
+                self.assertIn(signal, skill)
+
+    def test_ship_mode_comes_from_project_profile(self):
+        skill = self.ship_skill()
+        for signal in ("`Ship mode: local-merge | pr`", "docs/agents/project.md", "missing",
+                       "stop and ask", "push only the feature branch", "gh pr create",
+                       "only after the PR is merged", "never `gh pr merge`"):
+            with self.subTest(signal=signal):
+                self.assertIn(signal, skill)
+        setup = " ".join((SKILLS / "setup-matt-pocock-skills/SKILL.md").read_text().split())
+        template = (SKILLS / "setup-matt-pocock-skills/project.md").read_text()
+        self.assertIn("Ship mode", setup)
+        self.assertIn("Ship mode: local-merge | pr", template)
 
     def test_obsolete_runtime_authority_removed(self):
         for path in (CONFIG / "agents").glob("*.md"):
@@ -651,10 +746,43 @@ class RuntimeTests(unittest.TestCase):
                                provenance=provenance)
 
 
+    def test_shipper_allows_only_owner_ship_merge_forms(self):
+        shipper = self.agents["shipper"]
+        attributed = ("GIT_AUTHOR_NAME='OpenCode Agent' GIT_AUTHOR_EMAIL='opencode-agent@users.invalid' "
+                      "GIT_COMMITTER_NAME='OpenCode Agent' GIT_COMMITTER_EMAIL='opencode-agent@users.invalid' "
+                      "git -c commit.gpgsign=false merge --no-ff --no-gpg-sign feature/x "
+                      "-m $'feat(tmux): ship x\\n\\nAgent: OpenCode / Example'")
+        for command in ("git merge --no-ff feature/x", "git merge --no-ff --no-gpg-sign feature/x -m 'feat: x'",
+                        "git merge --abort", attributed, "git worktree list --porcelain",
+                        "git worktree remove /tmp/opencode/feature", "git branch -d feature/x"):
+            self.assertEqual(effect(shipper, "shell", command), "allow", command)
+        for command in ("git merge feature/x", "git merge --squash feature/x",
+                        "git push origin feature/x", "gh pr create --fill"):
+            self.assertEqual(effect(shipper, "shell", command), "ask", command)
+        for command in ("gh pr merge 12", "gh pr merge 12 --merge --delete-branch",
+                        "git push origin main", "git push origin HEAD:main", "git switch main",
+                        "git checkout main", "git branch -D feature/x", "git branch -D main",
+                        "git worktree remove --force /tmp/opencode/feature",
+                        "git worktree remove -f /tmp/opencode/feature"):
+            self.assertEqual(effect(shipper, "shell", command), "deny", command)
+        self.assertEqual(effect(shipper, "subagent", "explore"), "allow")
+        for name in ("builder", "merger", "general", "orchestrator"):
+            self.assertEqual(effect(shipper, "subagent", name), "deny", name)
+        self.assertEqual(effect(shipper, "edit", "docs/plans/README.md"), "allow")
+        for path in ("common/tmux/.config/tmux/tmux.conf", "docs/plans/x/.env", "docs/plans/auth.json"):
+            self.assertEqual(effect(shipper, "edit", path), "deny", path)
+
+    def test_ship_rules_do_not_break_feature_integration(self):
+        # Shell rules match command text, not the checked-out branch: Merger keeps
+        # its feature-branch merges and Implementers stay unable to merge.
+        for command in ("git merge --no-ff ticket/example", "git merge ticket/example"):
+            self.assertEqual(effect(self.agents["merger"], "shell", command), "allow", command)
+        self.assertEqual(effect(self.agents["builder"], "shell", "git merge --no-ff ticket/x"), "deny")
+
     def test_fixture_role_discovery(self):
-        for name in ("orchestrator", "planner", "builder", "merger", "tester", "reviewer"):
+        for name in ("orchestrator", "planner", "builder", "merger", "tester", "reviewer", "shipper"):
             self.assertIn(name, self.agents)
-            expected = "primary" if name in ("orchestrator", "planner") else "subagent"
+            expected = "primary" if name in ("orchestrator", "planner", "shipper") else "subagent"
             self.assertEqual(self.agents[name]["mode"], expected)
             body = (CONFIG / "agents" / f"{name}.md").read_text().split("---", 2)[2].strip()
             self.assertEqual(self.agents[name]["system"].strip(), body,
@@ -702,7 +830,7 @@ class RuntimeTests(unittest.TestCase):
             self.assertEqual(effect(self.agents["reviewer"], "shell", command), "deny")
 
     def test_protected_actions_and_paths(self):
-        for name in ("orchestrator", "builder", "merger", "tester", "reviewer", "planner"):
+        for name in ("orchestrator", "builder", "merger", "tester", "reviewer", "planner", "shipper"):
             agent = self.agents[name]
             for protected in ("/etc/*", "/etc/ssh/*"):
                 self.assertEqual(effect(agent, "external_directory", protected), "deny", name)
@@ -719,7 +847,7 @@ class RuntimeTests(unittest.TestCase):
 
     def test_loaded_external_boundaries_do_not_grant_unrelated_locations(self):
         worktrees = "/home/rbl/.local/share/opencode/worktrees/dotfiles-cleanup/*"
-        for name in ("orchestrator", "builder", "merger", "tester", "reviewer", "planner"):
+        for name in ("orchestrator", "builder", "merger", "tester", "reviewer", "planner", "shipper"):
             agent = self.agents[name]
             self.assertEqual(effect(agent, "external_directory", worktrees), "allow", name)
             for managed in ("/tmp/opencode/*", "/home/rbl/.config/opencode/*",

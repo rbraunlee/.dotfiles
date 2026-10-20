@@ -113,7 +113,10 @@ start a duplicate worker merely because the original CLI disconnected.
 - Report baseline, final SHA, acceptance coverage, commands/outcomes, independent
   review, deviations, risks and a short project-appropriate QA checklist. Provide
   inspect/run instructions; do not leave a persistent preview running unless
-  requested or pre-authorized. User performs QA and merges into `main`.
+  requested or pre-authorized. Record the tested/reviewed SHA and QA checklist in
+  the feature's handoff/approval record; `/ship` pre-flight compares that SHA.
+  The user performs QA. End the handoff with: after human QA, run `/ship <feature>`
+  (owner-invoked; the only agent path to `main`).
 - Keep the feature worktree for QA. Only clean, owned, successfully verified
   generated ticket/repair/verification worktrees with completed sessions may be
   safely removed. Never force-remove, discard uncertain state or clean broad roots.
