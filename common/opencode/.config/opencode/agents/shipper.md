@@ -26,7 +26,8 @@ permissions:
   - action: shell
     resource: "git worktree remove -f *"
     effect: deny
-  # Records only: shipping never edits product files.
+  # Records only (guidance: shell stays default-allow, so this limits the edit
+  # tool, not shell writes): shipping never edits product files.
   - action: edit
     resource: "*"
     effect: deny
@@ -84,6 +85,9 @@ attribution rules for agent-created commits, using your own actual model name.
 
 Known limit: OpenCode permission patterns match command text, not the current
 branch. They cannot make "only `/ship` merges into `main`" technically true: the
-Merger legitimately runs `git merge --no-ff` on feature branches, and env-prefixed
-or `git -c` forms are matched as different text. This is a prompt-and-review
-guardrail in trusted-local development, not containment.
+Merger legitimately runs `git merge --no-ff` on feature branches, and
+env-prefixed, `git -c` or `git -C` forms are matched as different text, so
+pre-existing global rules allow them, including pushes to `main`,
+`switch`/`checkout -B` of `main`, other merge forms and `git branch --delete
+--force`. The attributed ship merge itself is allowed that way. This is a
+prompt-and-review guardrail in trusted-local development, not containment.

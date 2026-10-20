@@ -572,9 +572,13 @@ class AssetTests(unittest.TestCase):
         self.assertIn("description:", frontmatter(entry))
         body = " ".join(shipper.read_text().split("---", 2)[2].split())
         for signal in ("explicit QA approval", "git merge --abort", "command text, not the current branch",
-                       "Merger legitimately runs `git merge --no-ff`", "not containment"):
+                       "Merger legitimately runs `git merge --no-ff`", "not containment",
+                       "env-prefixed, `git -c` or `git -C` forms",
+                       "including pushes to `main`, `switch`/`checkout -B` of `main`"):
             with self.subTest(agent=signal):
                 self.assertIn(signal, body)
+        rules = " ".join(frontmatter(shipper).split())
+        self.assertIn("Records only (guidance: shell stays default-allow", rules)
 
     def ship_skill(self):
         return " ".join((SKILLS / "ship/SKILL.md").read_text().split("---", 2)[2].split())
@@ -789,14 +793,11 @@ class RuntimeTests(unittest.TestCase):
                                provenance=provenance)
 
 
-    def test_shipper_allows_only_owner_ship_merge_forms(self):
+    def test_shipper_rules_for_plain_command_forms(self):
+        # Plain (unprefixed) command text only; see the known-limit test below.
         shipper = self.agents["shipper"]
-        attributed = ("GIT_AUTHOR_NAME='OpenCode Agent' GIT_AUTHOR_EMAIL='opencode-agent@users.invalid' "
-                      "GIT_COMMITTER_NAME='OpenCode Agent' GIT_COMMITTER_EMAIL='opencode-agent@users.invalid' "
-                      "git -c commit.gpgsign=false merge --no-ff --no-gpg-sign feature/x "
-                      "-m $'feat(tmux): ship x\\n\\nAgent: OpenCode / Example'")
         for command in ("git merge --no-ff feature/x", "git merge --no-ff --no-gpg-sign feature/x -m 'feat: x'",
-                        "git merge --abort", attributed, "git worktree list --porcelain",
+                        "git merge --abort", "git worktree list --porcelain",
                         "git worktree remove /tmp/opencode/feature", "git branch -d feature/x"):
             self.assertEqual(effect(shipper, "shell", command), "allow", command)
         for command in ("git merge feature/x", "git merge --squash feature/x",
@@ -814,6 +815,26 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(effect(shipper, "edit", "docs/plans/README.md"), "allow")
         for path in ("common/tmux/.config/tmux/tmux.conf", "docs/plans/x/.env", "docs/plans/auth.json"):
             self.assertEqual(effect(shipper, "edit", path), "deny", path)
+
+    def test_shipper_known_limit_prefixed_forms_are_not_blocked(self):
+        # Known limit, pinned on purpose: env-prefixed, `git -c` and `git -C` forms
+        # are different command text, so pre-existing global rules allow them for
+        # the shipper. The attributed ship merge is allowed by that default too,
+        # not by the `git merge --no-ff *` rule. The prompt and review are the
+        # guardrail. If a rule change starts blocking these, this test fails so
+        # the ship merge template and shipper.md limit wording get revisited.
+        shipper = self.agents["shipper"]
+        attributed = ("GIT_AUTHOR_NAME='OpenCode Agent' GIT_AUTHOR_EMAIL='opencode-agent@users.invalid' "
+                      "GIT_COMMITTER_NAME='OpenCode Agent' GIT_COMMITTER_EMAIL='opencode-agent@users.invalid' "
+                      "git -c commit.gpgsign=false merge --no-ff --no-gpg-sign feature/x "
+                      "-m $'feat(tmux): ship x\\n\\nAgent: OpenCode / Example'")
+        for command in (attributed, "GIT_AUTHOR_NAME=x git merge feature/x",
+                        "git -c x=y merge --squash feature/x", "git -c x=y push origin main",
+                        "GIT_AUTHOR_NAME=x git push origin main",
+                        "git -C /home/rbl/.dotfiles switch main", "git switch -C main",
+                        "git checkout -B main origin/main", "git branch --delete --force x"):
+            with self.subTest(command=command):
+                self.assertEqual(effect(shipper, "shell", command), "allow")
 
     def test_ship_rules_do_not_break_feature_integration(self):
         # Shell rules match command text, not the checked-out branch: Merger keeps
