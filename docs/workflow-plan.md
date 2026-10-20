@@ -219,3 +219,39 @@ routine user intervention; concurrent agents remain in their assigned worktrees;
 dependencies and integration are correct; normal commands do not repeatedly ask;
 final independent verification covers the full spec; interrupted work is recoverable;
 and `main`, production and deployment remain human-controlled.
+
+## 11. Feature end-of-life: QA → merge → retire
+
+Delivery of a feature ends in this order. Later steps never replace earlier ones.
+
+1. The Implementer/Merger hands back the check report: baseline and final commit,
+   checks, review outcome, deviations and limits. Automated gates never claim
+   human QA.
+2. The owner performs final human QA manually.
+3. On the owner's explicit approval:
+   - **Local repo (default here):** the approved merge into `main` happens, and
+     in the same turn retirement executes. Agents still never merge protected
+     `main` on their own — this step is owner-performed or owner-directed.
+   - **GitHub-hosted repos:** the merge of the feature PR *is* the approval plus
+     retirement trigger; no separate cleanup authorization is needed.
+4. Retirement, executed without a further ceremony, removes the feature's
+   integration/ticket worktrees, ticket branches and working artifacts
+   (scratch dirs, session dumps, manifests, preserved originals). Merged commits
+   remain recoverable in Git history.
+5. What survives: the feature's `decisions.md` and `approval.md` under
+   `docs/plans/<feature>/`, plus one index line in `docs/plans/README.md`.
+6. **QA note:** after the merge, record at most two lines in that feature's
+   `approval.md`. Template:
+
+       ## Human QA — approved for merge
+       Performed (owner): <checks> — date: <YYYY-MM-DD> — merged: <SHA>
+
+   Keep commit and merge messages plain Conventional Commits; the `Agent:`
+   attribution trailer is the ceiling (see the project profile). QA status lives
+   in `approval.md`, not in Git metadata.
+7. **Abandoned features:** an explicit owner decision "abandon, keep nothing"
+   retires the feature exactly like a merge does — delete worktree, branch and
+   artifacts; dead work must not linger either way.
+
+Retirement does not retroactively pass any gate. A merged-but-not-fully-verified
+feature stays recorded as such in its `approval.md`.
