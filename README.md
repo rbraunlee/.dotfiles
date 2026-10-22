@@ -139,7 +139,7 @@ stow -R -t ~ -d common nvim
 The `opencode` package provides skill-driven planning and trusted-local feature
 delivery. Start with `/setup-matt-pocock-skills` once per project, then use
 `/implement` for a bounded change or `/implement-spec <approved-spec>` for a ticket
-graph. See [usage and verification status](docs/workflow-adoption.md). Agents leave
+graph. Agents leave
 final QA and the merge into `main` to you; worktrees are not security sandboxes.
 
 Run the package's configuration regression checks from the repository root:
