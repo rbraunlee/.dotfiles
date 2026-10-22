@@ -56,7 +56,9 @@ OpenCode adaptation of the pinned Matt Pocock skill; provenance and changes are 
    human merge; do not call it closed prematurely.
 6. Remove only clean, owned generated ticket worktrees whose exact commits are
    ancestors of the checked integration HEAD and whose sessions have finished.
-   Use non-force `git worktree remove <exact-path>`; retain the branch/traceability.
+   Use non-force `git worktree remove <exact-path>`, then delete its ticket branch
+   with `git branch -d` once merged into the feature branch (never `-D`; the
+   integration history keeps traceability). Keep the feature worktree for QA.
    Preserve failed, interrupted, dirty or ambiguous worktrees. Reconcile tracker
    evidence before retrying if a tracker write fails after successful integration.
 7. Repeat until every ticket is integrated or no safe progress is possible. An
@@ -65,5 +67,6 @@ OpenCode adaptation of the pinned Matt Pocock skill; provenance and changes are 
 ## Final gate and handoff
 
 Use the final verification, repair and publication procedure in LOCAL-EXECUTION.md
-against the full spec and exact integration commit. One feature-level gate and,
-when authorized, one feature PR; never routine per-ticket PRs or human approvals.
+against the full spec and exact integration commit. One feature-level gate; never
+routine per-ticket PRs or human approvals. In `Ship mode: pr`, `/ship` creates the
+one feature PR after human QA; the Coordinator does not open it.

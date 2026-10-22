@@ -34,6 +34,8 @@ omitted: they are another harness's UI metadata, not OpenCode agent contracts.
 - Full-feature independent Tester and fresh Reviewer gate the immutable final
   commit. At most two repair passes; user owns QA/`main` merge. One authorized
   feature PR or local handoff; no routine ticket PRs or intermediate approval gates.
+  Later: owner-invoked `/ship` after QA is now the agent path to `main` (see the
+  2026-10-20 entry) and creates the one feature PR in `pr` mode.
 - `code-review` retains independent Spec/Standards axes and the smell baseline but
   the fresh Reviewer performs both directly with read-only Git. No nested review
   agents, copied diff, three-dot-only gate or spec-axis skip. Explicit supplied
@@ -50,9 +52,20 @@ omitted: they are another harness's UI metadata, not OpenCode agent contracts.
   paths. The local `brainstorm` skill now reuses conversation context and follows
   requested depth; it is not a vendored upstream skill. These are prompt guidance,
   not a guarantee of model behavior or a change to execution/permission contracts.
+- Owner-invoked ship adaptation (2026-10-20): the local `ship` skill, `/ship`
+  command and primary `shipper` agent end delivery after human QA. Read-only
+  pre-flight (recorded tested/reviewed SHA equals the feature tip, clean feature and
+  primary `main` checkouts), explicit owner QA approval, then either one attributed
+  `git merge --no-ff` into `main` (abort on conflict, never push) or one feature PR,
+  followed by retirement (copy/verify records, non-force worktree removal,
+  `git branch -d`). Setup records `Ship mode: local-merge | pr`; delivery handoffs
+  end with "after human QA, run `/ship <feature>`"; `implement-spec` deletes merged
+  ticket branches with `git branch -d` instead of retaining them. Permission
+  patterns match command text, not the current branch, so they cannot enforce
+  "only `/ship` merges `main`"; the Merger keeps its feature-branch merges.
 - Supporting references not listed above are unchanged; originals can be recovered
   from the pinned commit and validated against the lock's original hashes. The
-  local `brainstorm` and `import-notes` skills are not from this snapshot.
+  local `brainstorm`, `import-notes` and `ship` skills are not from this snapshot.
 
 `UPSTREAM.md` is provenance, not an executable skill. No unreviewed upstream
 scripts, installation commands or auto-updaters are included.
