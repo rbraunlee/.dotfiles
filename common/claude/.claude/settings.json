@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "additionalDirectories": [
+      "~/.local/share/claude-worktrees"
+    ],
+    "allow": [
+      "Bash(man *)",
+      "Bash(MANPAGER=cat PAGER=cat man *)",
+      "Bash(git status *)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Read(~/.claude/skills/**)",
+      "Read(~/.claude/agents/**)",
+      "Read(~/.claude/workflow/**)"
+    ],
+    "ask": [
+      "Bash(git push *)",
+      "Bash(gh pr create *)",
+      "Bash(git reset --hard *)",
+      "Bash(git clean -f*)",
+      "Bash(git filter-branch*)",
+      "Bash(git worktree remove --force *)",
+      "Bash(git worktree remove -f *)",
+      "Bash(rm -rf *)",
+      "Bash(rm -fr *)",
+      "Bash(rm -r -f *)",
+      "Bash(dd *)",
+      "Bash(mkfs*)",
+      "Bash(sudo *)"
+    ],
+    "deny": [
+      "Bash(gh pr merge *)",
+      "Read(//**/*.env)",
+      "Read(//**/*credentials*)",
+      "Read(//**/*id_rsa*)",
+      "Read(//**/*id_ed25519*)",
+      "Read(//**/*.pem)",
+      "Read(//**/*auth.json)",
+      "Read(//**/*.npmrc)",
+      "Read(//**/*.pypirc)",
+      "Edit(//**/*.env)",
+      "Edit(//**/*credentials*)",
+      "Edit(//**/*id_rsa*)",
+      "Edit(//**/*id_ed25519*)",
+      "Edit(//**/*.pem)",
+      "Edit(//**/*auth.json)",
+      "Edit(//**/*.npmrc)",
+      "Edit(//**/*.pypirc)",
+      "Read(//etc/**)",
+      "Edit(//etc/**)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Agent|Bash|Read|Edit|Write|NotebookEdit|mcp__drawio__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$HOME/.claude/hooks/policy.py\"",
+            "timeout": 30,
+            "onFailure": "block"
+          }
+        ]
+      }
+    ]
+  }
+}

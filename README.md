@@ -165,6 +165,21 @@ python3 -m unittest discover -s common/opencode/.config/opencode/tests -v
 Runtime checks require OpenCode and the `opencode` package to be stowed. The checks
 make no model calls and do not mutate project files.
 
+### Claude Code feature delivery
+
+The `claude` package ports the OpenCode workflow to Claude Code: the same roles and
+skills, an owner-only `/ship` to `main`, and a policy hook for the rules Claude
+Code's permission settings cannot express. Its unchanged skills link into the
+`opencode` package, so keep both in the checkout:
+
+```bash
+stow -n -v -t ~ -d common claude
+stow -t ~ -d common claude
+```
+
+See [Claude Code setup](common/claude/README.md) for usage, MCP registration and
+limits. Run its checks with `python3 -m unittest discover -s tests/common/claude -v`.
+
 ### Nerd Fonts
 
 **macOS:** `brew install font-comic-shanns-mono-nerd-font`
