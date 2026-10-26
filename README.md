@@ -134,6 +134,20 @@ stow -R -t ~ -d common nvim
 
 ## Notes
 
+### Codex feature delivery
+
+The `codex` and `agent-skills` packages provide Codex configuration, three focused
+child roles and the adapted planning/delivery skills. Install them separately with
+`--no-folding` so runtime state stays outside the dotfiles checkout:
+
+```bash
+stow -n -v --no-folding -t ~ -d common codex agent-skills
+stow --no-folding -t ~ -d common codex agent-skills
+```
+
+See [Codex setup](common/codex/README.md) for usage, optional MCP integrations,
+CLI/T3 execution differences and validation. OpenCode remains independently usable.
+
 ### OpenCode feature delivery
 
 The `opencode` package provides skill-driven planning and trusted-local feature

@@ -1,0 +1,15 @@
+# Opt in with: codex --profile integrations
+# Install the pinned local servers first; see common/codex/README.md.
+[mcp_servers.obsidian]
+url = "https://127.0.0.1:27124/mcp/"
+bearer_token_env_var = "OBS_MCP_TOKEN"
+
+[mcp_servers.brave-search]
+command = "sh"
+args = ["-c", 'BRAVE_API_KEY="$BRAVE_SEARCH_TOKEN" exec "$HOME/.local/share/codex-mcp/node_modules/.bin/mcp-server-brave-search"']
+env_vars = ["BRAVE_SEARCH_TOKEN", "HOME"]
+
+[mcp_servers.drawio]
+command = "sh"
+args = ["-c", 'exec "$HOME/.local/share/codex-mcp/node_modules/.bin/drawio-mcp"']
+env_vars = ["HOME"]
