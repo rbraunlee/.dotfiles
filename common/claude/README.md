@@ -37,26 +37,28 @@ connect, point `NODE_EXTRA_CA_CERTS` at the plugin's certificate.
 | Plan a feature | `claude --agent planner`, then `/setup-matt-pocock-skills` once per project |
 | Deliver an approved spec | `claude --agent orchestrator`, then `/implement-spec <spec>` |
 | Deliver a bounded change | `claude --agent orchestrator`, then `/implement <request>` |
-| Ship after human QA | `claude --agent shipper` in the primary checkout, then `/ship <feature>` |
+| Ship after human QA | `claude` in the primary checkout, then `/ship <feature>` |
+| Walk through a finished feature | `/recap <handoff> <baseline> <final>` |
+| Think a problem through | `claude --agent tutor` |
 
-`/implement-spec`, `/implement` and `/ship` are owner-only: the model never invokes
-them by itself. Optional specialists (`aligner`, `brainstormer`, `recaper`, `tutor`)
-run either as `claude --agent <name>` or as subagents. Delivery worktrees live under
-`~/.local/share/claude-worktrees/<project>/`.
+`/implement-spec`, `/implement`, `/ship` and `/recap` are owner-only: the model never
+invokes them by itself. The package has seven agents: the `builder`, `merger`,
+`tester` and `reviewer` subagents, plus `orchestrator`, `planner` and `tutor` for
+main sessions. Delivery worktrees live under `~/.local/share/claude-worktrees/<project>/`.
 
 ## Guardrails
 
 `hooks/policy.py` enforces what Claude Code's unordered permission rules cannot:
 
 - `main` is branch-aware protected in every session. Switching to it, force-moving
-  or deleting it, pushing it and `gh pr merge` are refused. Merging into it asks
-  unless the session runs as `shipper`.
-- Delivery roles (`builder`, `merger`, `tester`, `reviewer`, `cleaner`,
-  `refactorer`) are refused commands and edits in a primary checkout. They must
-  start every Bash call with `cd '<worktree>' &&`.
+  or deleting it, pushing it and `gh pr merge` are refused. Merging into it always
+  asks, so `/ship` merges only with your approval of that one command.
+- Delivery roles (`builder`, `merger`, `tester`, `reviewer`) are refused commands
+  and edits in a primary checkout. They must start every Bash call with
+  `cd '<worktree>' &&`.
 - Per-role shell, edit and subagent limits follow the OpenCode agent rules.
 - `.env.*` files are blocked for file tools except `.env.example`, and draw.io is
-  limited to the aligner and brainstormer.
+  limited to the planner.
 
 These are guardrails for trusted local development, not a sandbox. Commands hidden
 in scripts or `sh -c` are not inspected. Shell reads of `.env.*` variants are only

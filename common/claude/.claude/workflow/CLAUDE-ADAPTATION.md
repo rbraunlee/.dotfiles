@@ -13,7 +13,7 @@ package, so both harnesses read one copy: `brainstorm`, `codebase-design`,
 setup templates, the license and `upstream-lock.json`.
 
 Adapted copies live in this package: `implement-spec` (and `LOCAL-EXECUTION.md`),
-`implement`, `ship` (plus `worktree_in_use.py`), `setup-matt-pocock-skills`
+`implement`, `ship` (plus `worktree_in_use.py`), `recap`, `setup-matt-pocock-skills`
 (`SKILL.md`, `project.md`), `grill-with-docs` and `spec-review`, plus every agent.
 [adapted-from.json](adapted-from.json) records the SHA-256 of each OpenCode source at
 adaptation time; the package tests fail when a source changes, until the change is
@@ -22,19 +22,28 @@ ported here and the hash updated.
 ## Mapping
 
 - **Skills and commands.** Claude Code skills are slash commands, so the seven thin
-  OpenCode commands are not needed. `implement-spec`, `implement` and `ship` set
-  `disable-model-invocation: true`: only the owner can kick off delivery or ship.
+  OpenCode commands are not needed. `implement-spec`, `implement`, `ship` and `recap`
+  set `disable-model-invocation: true`: only the owner can start them.
 - **`code-review` is renamed `spec-review`** because Claude Code has a built-in
   `/code-review` command with different behaviour.
-- **Primary agents** (`planner`, `orchestrator`, `shipper`) are agent files run as
-  the main session with `claude --agent <name>`. The delivery skills also work in a
-  plain session by adopting the agent file, with weaker hook enforcement because the
-  hook keys on `agent_type`.
+- **Seven agents, not thirteen.** Subagents cannot hold a conversation with the
+  owner, and `claude --agent` replaces Claude Code's default system prompt, so only
+  roles that earn a separate context stay agents:
+  - delivery subagents `builder`, `merger`, `tester` and `reviewer`;
+  - main-session agents `orchestrator` and `planner`, run as `claude --agent <name>`
+    (the delivery skills also work in a plain session by adopting the agent file,
+    with weaker hook enforcement because the hook keys on `agent_type`);
+  - the `tutor` persona, run as `claude --agent tutor`.
+- **Dropped or folded roles.** `aligner` and `brainstormer` duplicated the planner's
+  `grill-with-docs` and `brainstorm` skills; the planner takes over draw.io.
+  `cleaner` and `refactorer` were never dispatched; builders own scoped refactoring.
+  `shipper` is folded into the `ship` skill: merging into `main` now asks for
+  permission in every session, and `git branch -D` and forced worktree removal ask
+  too. `recaper` became the `recap` skill, because a walkthrough is a conversation.
 - **Subagents** keep their names and contracts. `disallowedTools` removes `Agent`
   (no nesting) and edit tools for read-only roles; MCP tools stay inherited.
-- **Models.** `gpt-6.1-sol` roles map to `opus`, `gpt-6-sol` (builder, tester) to
-  `sonnet`, `gpt-5.3-codex-spark` (cleaner, refactorer) to `haiku`, keeping each
-  role's effort where the model supports it.
+- **Models.** `gpt-6.1-sol` roles map to `opus` and `gpt-6-sol` (builder, tester) to
+  `sonnet`, keeping each role's effort.
 - **Permissions.** Claude Code rules are unordered (deny beats ask beats allow) and
   global. Rules that need ordering, a role or the current branch live in
   `hooks/policy.py`: branch-aware `main` protection, per-role shell/edit/agent

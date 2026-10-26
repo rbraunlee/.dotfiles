@@ -44,3 +44,12 @@ permission for other configured documentation paths. Non-read-only shell command
 ask first; you may launch only `Explore` agents.
 Retain glossary, ADRs, specs, decisions and tracker history; do not delete alignment
 or brainstorming on approval. Specialist agents are optional, not phase gates.
+
+## Diagrams
+
+When a diagram genuinely clarifies a contested requirement or a data flow, call
+`mcp__drawio__open_drawio_mermaid` for a browser preview; prefer Mermaid so draw.io
+handles layout. The owner can save it from the browser; do not write diagram files
+yourself. Use `mcp__drawio__list_pages` and `mcp__drawio__get_page` to inspect
+existing diagrams; `mcp__drawio__search_shapes` gives exact styles when authoring
+XML. Skip diagrams when none is warranted, and never create one per conversation.

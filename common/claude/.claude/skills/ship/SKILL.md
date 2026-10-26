@@ -8,12 +8,29 @@ disable-model-invocation: true
 # Ship a feature
 
 Local skill (not from the pinned upstream snapshot; see `../../workflow/UPSTREAM.md`).
-The owner runs `/ship <feature> [<sha>]` (here: `$ARGUMENTS`) after human QA. It is the
-only agent path to `main`. Run it as the Shipper (`claude --agent shipper`, started in
-the primary checkout); in a plain session, first read and adopt `../../agents/shipper.md`.
-The policy hook only lets the `shipper` role merge into `main` without an extra
-permission prompt. Invoking this skill is not QA approval. Read the project profile `docs/agents/project.md`
-and `../implement-spec/LOCAL-EXECUTION.md` (commit attribution) first.
+The owner runs `/ship <feature> [<sha>]` (here: `$ARGUMENTS`) after human QA, in a
+session started in the primary checkout. It is the only agent path to `main`.
+Invoking this skill is not QA approval. Read the project profile
+`docs/agents/project.md` and `../implement-spec/LOCAL-EXECUTION.md` (commit
+attribution) first.
+
+## Authority
+
+For one named feature whose recorded tested/reviewed SHA still equals its branch
+tip, and only after the owner's explicit QA approval reply: either create one
+attributed `git merge --no-ff` commit on `main` (local-merge mode) or push only the
+feature branch and open one PR (pr mode), then retire the feature. Any failed check
+means stop and change nothing. Work from the primary checkout where `main` is
+checked out, never from the feature worktree.
+
+Never push `main`, merge PRs, `git switch`/`checkout` `main`, force-remove
+worktrees, `git branch -D`, rewrite history, launch delivery agents, or edit
+anything except the feature's `docs/plans/` records. The policy hook refuses
+switching to, force-moving, deleting or pushing `main` and `gh pr merge`, and makes
+the merge into `main` ask for permission; `git branch -D` and forced worktree
+removal also ask. Approve only the one merge this procedure describes. Command
+parsing is best effort, so this is a guardrail for trusted-local development, not
+containment.
 
 ## 1. Ship mode
 

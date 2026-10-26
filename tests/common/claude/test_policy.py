@@ -78,11 +78,10 @@ class PolicyHook(unittest.TestCase):
         self.assertEqual(self.bash("echo hi && gh pr merge 3"), "deny")
         self.assertEqual(self.bash("echo $(gh pr merge 3)"), "deny")
 
-    def test_merging_into_main_asks_except_for_the_shipper(self):
+    def test_merging_into_main_always_asks(self):
         self.assertEqual(self.bash("git merge --no-ff feature/x"), "ask")
         self.assertEqual(self.bash("git merge --no-ff feature/x", role="orchestrator"), "ask")
-        self.assertIsNone(self.bash("git merge --no-ff feature/x", role="shipper"))
-        self.assertEqual(self.bash("git merge feature/x", role="shipper"), "ask")
+        self.assertEqual(self.bash("git merge feature/x", role="planner"), "ask")
         self.assertIsNone(self.bash("git merge --abort"))
         self.assertIsNone(self.bash("git merge --no-ff other", self.worktree))
 
@@ -117,9 +116,9 @@ class PolicyHook(unittest.TestCase):
                     "find . -name x", "git worktree add y", "git -C . diff"):
             self.assertEqual(self.bash(wt + cmd, role="reviewer"), "deny", cmd)
 
-    def test_interview_roles_only_read_manuals(self):
+    def test_tutor_only_reads_manuals(self):
         self.assertIsNone(self.bash("MANPAGER=cat PAGER=cat man git", role="tutor"))
-        self.assertEqual(self.bash("ls", role="aligner"), "deny")
+        self.assertEqual(self.bash("ls", role="tutor"), "deny")
 
     def test_planner_asks_for_non_read_only_commands(self):
         self.assertIsNone(self.bash("git log --oneline -3", role="planner"))
@@ -128,13 +127,14 @@ class PolicyHook(unittest.TestCase):
     def test_edit_allowlists_are_relative_to_the_repository(self):
         doc = str(self.primary / "docs/plans/x/approval.md")
         code = str(self.primary / "src/app.py")
-        self.assertIsNone(self.decide("Edit", {"file_path": doc}, role="shipper"))
-        self.assertEqual(self.decide("Edit", {"file_path": code}, role="shipper"), "deny")
+        self.assertIsNone(self.decide("Edit", {"file_path": doc}, role="planner"))
+        self.assertEqual(self.decide("Edit", {"file_path": code}, role="planner"), "deny")
         self.assertIsNone(self.decide("Write", {"file_path": str(self.primary / "CONTEXT.md")},
-                                      role="aligner"))
+                                      role="planner"))
         self.assertEqual(self.decide("Write", {"file_path": str(self.primary / "docsx/a.md")},
-                                     role="brainstormer"), "deny")
+                                     role="planner"), "deny")
         self.assertEqual(self.decide("Edit", {"file_path": doc}, role="reviewer"), "deny")
+        self.assertEqual(self.decide("Write", {"file_path": doc}, role="tutor"), "deny")
 
     # secrets and MCP -------------------------------------------------------
     def test_env_example_is_the_only_env_exception(self):
@@ -144,11 +144,11 @@ class PolicyHook(unittest.TestCase):
         self.assertIsNone(self.decide("Read", {"file_path": str(self.primary / ".env.example")}))
         self.assertIsNone(self.decide("Edit", {"file_path": str(self.primary / ".env.example")}))
 
-    def test_drawio_is_limited_to_interview_roles(self):
+    def test_drawio_is_limited_to_the_planner(self):
         tool = "mcp__drawio__open_drawio_mermaid"
         self.assertEqual(self.decide(tool, {}), "deny")
-        self.assertEqual(self.decide(tool, {}, role="planner"), "deny")
-        self.assertIsNone(self.decide(tool, {}, role="aligner"))
+        self.assertEqual(self.decide(tool, {}, role="orchestrator"), "deny")
+        self.assertIsNone(self.decide(tool, {}, role="planner"))
 
     def test_line_continuations_and_newlines_do_not_hide_commands(self):
         self.assertEqual(self.bash("echo hi\ngh pr merge 3"), "deny")
@@ -158,12 +158,13 @@ class PolicyHook(unittest.TestCase):
     def test_roles_launch_only_their_subagent_types(self):
         launch = lambda kind, role: self.decide("Agent", {"subagent_type": kind}, role=role)
         self.assertIsNone(launch("builder", "orchestrator"))
-        self.assertEqual(launch("cleaner", "orchestrator"), "deny")
+        self.assertEqual(launch("Plan", "orchestrator"), "deny")
         self.assertIsNone(launch("Explore", "planner"))
         self.assertEqual(launch("general-purpose", "planner"), "deny")
-        self.assertEqual(self.decide("Agent", {}, role="shipper"), "deny")
+        self.assertEqual(self.decide("Agent", {}, role="planner"), "deny")
+        self.assertEqual(launch("Explore", "tutor"), "deny")
         self.assertEqual(launch("Explore", "builder"), "deny")
-        self.assertIsNone(launch("cleaner", None))
+        self.assertIsNone(launch("Plan", None))
 
     def test_unparseable_commands_are_denied(self):
         self.assertEqual(self.bash("echo 'unterminated"), "deny")

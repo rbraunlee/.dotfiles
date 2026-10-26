@@ -1,89 +1,90 @@
 {
-  "note": "SHA-256 of each OpenCode source when its Claude Code copy was adapted. When a test reports a mismatch, port the OpenCode change and update the hash.",
-  "files": {
-    "skills/implement-spec/SKILL.md": {
-      "source": "skills/implement-spec/SKILL.md",
-      "sha256": "da8d8bd67721289d6b600c5e5d985eae0d4bcc784e77882fe3ebe745102423f0"
-    },
-    "skills/implement-spec/LOCAL-EXECUTION.md": {
-      "source": "skills/implement-spec/LOCAL-EXECUTION.md",
-      "sha256": "d275de1ead34b3e3b27771bb22cd3549f4ec7a15ced93b5a40d552fa2b51a395"
-    },
-    "skills/implement/SKILL.md": {
-      "source": "skills/implement/SKILL.md",
-      "sha256": "a338f7339b3289911ffcb6ea043ffcdf31a8aa20f36f38622d3017cbbf859f60"
-    },
-    "skills/ship/SKILL.md": {
-      "source": "skills/ship/SKILL.md",
-      "sha256": "56dda127b2931200544a6456a756249e2d3aaf8d5e0f07829b8a24f8b563744f"
-    },
-    "skills/setup-matt-pocock-skills/SKILL.md": {
-      "source": "skills/setup-matt-pocock-skills/SKILL.md",
-      "sha256": "f00211e54b3c880be20f0224ad8698b716784760228580e22ddc72215a793a2d"
-    },
-    "skills/setup-matt-pocock-skills/project.md": {
-      "source": "skills/setup-matt-pocock-skills/project.md",
-      "sha256": "176de2b3c099ee4ba8faef01aba2e001c27224498c508d6a5e1b26a150d6058e"
-    },
-    "skills/grill-with-docs/SKILL.md": {
-      "source": "skills/grill-with-docs/SKILL.md",
-      "sha256": "fd106d6abf3b17d0e80d2c2a4382ae9ff023b5206aa6076c3fdadaa39ea56306"
-    },
-    "skills/spec-review/SKILL.md": {
-      "source": "skills/code-review/SKILL.md",
-      "sha256": "4562c43df4cc8d4c9880ab057028324d183d8b6feef339c05b8d6790db14adff"
-    },
-    "agents/aligner.md": {
-      "source": "agents/aligner.md",
-      "sha256": "d363541c5298079b66e3779514760d7d2c0b04cc603b763a89662bfc78f77145"
-    },
-    "agents/brainstormer.md": {
-      "source": "agents/brainstomer.md",
-      "sha256": "7ebbd41861506d340f609a7d723a6eb43163e82b6b6c159a6f31c5bb993f9f4c"
-    },
-    "agents/builder.md": {
+  "note": "SHA-256 of each OpenCode source when its Claude Code copy was adapted. A copy may derive from several sources. When a test reports a mismatch, port the OpenCode change and update the hash.",
+  "files": [
+    {
+      "copy": "agents/builder.md",
       "source": "agents/builder.md",
       "sha256": "c7e70ad94fb316f5c041907fd55c5ceb43ae52b3615d3d1afabd21c5e5232a44"
     },
-    "agents/cleaner.md": {
-      "source": "agents/cleaner.md",
-      "sha256": "428e911e7d9a1d34442f35557be1e237915f3db79407e63e4f9f38a566acf212"
-    },
-    "agents/merger.md": {
+    {
+      "copy": "agents/merger.md",
       "source": "agents/merger.md",
       "sha256": "171c4f9ac01bba6e01d869de9ab810bf94e741fc77bf8092330912f334702573"
     },
-    "agents/orchestrator.md": {
+    {
+      "copy": "agents/orchestrator.md",
       "source": "agents/orchestrator.md",
       "sha256": "ab3ecfa613cbe5a7d60340783737f7461e77cc57e15cd6c15d5828231996eb10"
     },
-    "agents/planner.md": {
+    {
+      "copy": "agents/planner.md",
       "source": "agents/planner.md",
       "sha256": "b4cdb1fa68bc7e5d934ab7aeb1468143f555cfb0815c90877d74709694cc60b5"
     },
-    "agents/recaper.md": {
-      "source": "agents/recaper.md",
-      "sha256": "48b6b6930e46555d14280cc73875d1971936cadcc83253fbc55cea2fba1b52b8"
-    },
-    "agents/refactorer.md": {
-      "source": "agents/refactorer.md",
-      "sha256": "26c2155cd640b294058dd7e2ac1f3a4148dafdcaf9edc08888fa0d279280a4ee"
-    },
-    "agents/reviewer.md": {
+    {
+      "copy": "agents/reviewer.md",
       "source": "agents/reviewer.md",
       "sha256": "52e2bbda4037489bfdfd0165964cf58e3768b189a8bbcded01172966366751da"
     },
-    "agents/shipper.md": {
-      "source": "agents/shipper.md",
-      "sha256": "a62ffd893e8d93eda4bff3d334fa443612e2932a6a59e8da501cb071864a1063"
-    },
-    "agents/tester.md": {
+    {
+      "copy": "agents/tester.md",
       "source": "agents/tester.md",
       "sha256": "af419e2fd106b62e033e77387bcbfdca91322f8dae29c188a57f849870d96056"
     },
-    "agents/tutor.md": {
+    {
+      "copy": "agents/tutor.md",
       "source": "agents/tutor.md",
       "sha256": "784591f9b9813e28481612a7cba0804db4a601b591ce0d09a20462adc2dc1533"
+    },
+    {
+      "copy": "skills/grill-with-docs/SKILL.md",
+      "source": "skills/grill-with-docs/SKILL.md",
+      "sha256": "fd106d6abf3b17d0e80d2c2a4382ae9ff023b5206aa6076c3fdadaa39ea56306"
+    },
+    {
+      "copy": "skills/implement-spec/LOCAL-EXECUTION.md",
+      "source": "skills/implement-spec/LOCAL-EXECUTION.md",
+      "sha256": "d275de1ead34b3e3b27771bb22cd3549f4ec7a15ced93b5a40d552fa2b51a395"
+    },
+    {
+      "copy": "skills/implement-spec/SKILL.md",
+      "source": "skills/implement-spec/SKILL.md",
+      "sha256": "da8d8bd67721289d6b600c5e5d985eae0d4bcc784e77882fe3ebe745102423f0"
+    },
+    {
+      "copy": "skills/implement/SKILL.md",
+      "source": "skills/implement/SKILL.md",
+      "sha256": "a338f7339b3289911ffcb6ea043ffcdf31a8aa20f36f38622d3017cbbf859f60"
+    },
+    {
+      "copy": "skills/recap/SKILL.md",
+      "source": "agents/recaper.md",
+      "sha256": "48b6b6930e46555d14280cc73875d1971936cadcc83253fbc55cea2fba1b52b8"
+    },
+    {
+      "copy": "skills/setup-matt-pocock-skills/SKILL.md",
+      "source": "skills/setup-matt-pocock-skills/SKILL.md",
+      "sha256": "f00211e54b3c880be20f0224ad8698b716784760228580e22ddc72215a793a2d"
+    },
+    {
+      "copy": "skills/setup-matt-pocock-skills/project.md",
+      "source": "skills/setup-matt-pocock-skills/project.md",
+      "sha256": "176de2b3c099ee4ba8faef01aba2e001c27224498c508d6a5e1b26a150d6058e"
+    },
+    {
+      "copy": "skills/ship/SKILL.md",
+      "source": "agents/shipper.md",
+      "sha256": "a62ffd893e8d93eda4bff3d334fa443612e2932a6a59e8da501cb071864a1063"
+    },
+    {
+      "copy": "skills/ship/SKILL.md",
+      "source": "skills/ship/SKILL.md",
+      "sha256": "56dda127b2931200544a6456a756249e2d3aaf8d5e0f07829b8a24f8b563744f"
+    },
+    {
+      "copy": "skills/spec-review/SKILL.md",
+      "source": "skills/code-review/SKILL.md",
+      "sha256": "4562c43df4cc8d4c9880ab057028324d183d8b6feef339c05b8d6790db14adff"
     }
-  }
+  ]
 }

@@ -5,13 +5,13 @@ Claude Code permission rules are unordered (deny > ask > allow) and global, so
 the parts of the OpenCode rule model that need ordering, per-agent scope or the
 current branch live here instead:
 
-* branch-aware protection of `main` for every session;
+* branch-aware protection of `main` for every session (merging into it asks);
 * per-role shell and edit limits keyed on the hook's `agent_type`;
 * delivery roles must work inside a generated (linked) worktree, never the
   primary checkout;
 * `.env.*` secrets with the `.env.example` exception (last match wins);
-* draw.io MCP tools only for the aligner and brainstormer roles;
-* which subagent types the orchestrator, planner and shipper may launch.
+* draw.io MCP tools only for the planner role;
+* which subagent types the orchestrator and planner may launch.
 
 The hook only denies or asks; it never returns "allow", so settings rules and
 permission modes still apply. Command parsing is best effort: this is a
@@ -28,7 +28,7 @@ import sys
 
 PROTECTED = "main"
 
-DELIVERY_ROLES = {"builder", "merger", "tester", "reviewer", "cleaner", "refactorer"}
+DELIVERY_ROLES = {"builder", "merger", "tester", "reviewer"}
 
 # Roles whose shell is limited to an allowlist (every segment must match).
 SHELL_ALLOW = {
@@ -39,9 +39,6 @@ SHELL_ALLOW = {
         ("git", "ls-files"), ("git", "worktree", "list", "--porcelain"),
         ("git", "merge-base", "--is-ancestor"),
     ],
-    "recaper": [("pwd",), ("cd",), ("man",), ("git", "log"), ("git", "diff")],
-    "aligner": [("man",)],
-    "brainstormer": [("man",)],
     "tutor": [("man",)],
 }
 
@@ -61,24 +58,20 @@ GIT_DENY = {
 
 # Edit allowlists, relative to the edited file's repository root.
 EDIT_ALLOW = {
-    "aligner": ["docs/**", "CONTEXT.md", "GLOSSARY.md"],
-    "brainstormer": ["docs/**"],
     "planner": ["docs/**", "specs/**", ".scratch/**", "AGENTS.md", "CLAUDE.md",
                 "CONTEXT.md", "GLOSSARY.md", "GLOSSARY-MAP.md"],
-    "shipper": ["docs/plans/**"],
-    "tester": [], "reviewer": [], "recaper": [], "tutor": [],
+    "tester": [], "reviewer": [], "tutor": [],
 }
 
-DRAWIO_ROLES = {"aligner", "brainstormer"}
+DRAWIO_ROLES = {"planner"}
 
 # Subagent types each role may launch; roles not listed here are unrestricted
 # (the plain main session). Delivery and interview roles also drop the Agent tool.
 AGENT_ALLOW = {
     "orchestrator": {"builder", "merger", "tester", "reviewer", "Explore", "general-purpose"},
     "planner": {"Explore"},
-    "shipper": {"Explore"},
 }
-NO_AGENTS = DELIVERY_ROLES | {"aligner", "brainstormer", "recaper", "tutor"}
+NO_AGENTS = DELIVERY_ROLES | {"tutor"}
 
 # Ordered secret rules; the last match wins (mirrors opencode.jsonc).
 SECRET_RULES = [
@@ -246,8 +239,6 @@ def check_git(sub, args, directory, role):
             "--delete" in flags and "--force" in flags)
         if forced and PROTECTED in positionals:
             deny(f"Forcing, moving or deleting `{PROTECTED}` is not allowed.")
-        if role == "shipper" and ("-D" in flags or ("--delete" in flags and "--force" in flags)):
-            deny("The shipper retires branches with `git branch -d` only, never -D.")
 
     if sub == "push":
         if any(targets_protected(p) for p in positionals[1:]):
@@ -258,15 +249,10 @@ def check_git(sub, args, directory, role):
             deny(f"A bare `git push` on `{PROTECTED}` would publish it; the owner pushes.")
 
     if sub == "merge" and "--abort" not in flags:
-        if branch == PROTECTED and role != "shipper":
+        if branch == PROTECTED:
             ask(f"This merges into `{PROTECTED}`. Agents reach `{PROTECTED}` only via "
                 "the owner-invoked /ship after explicit QA approval.")
-        if role == "shipper" and "--no-ff" not in flags:
-            ask("The shipper only creates an attributed `git merge --no-ff`.")
 
-    if sub == "worktree" and positionals[:1] == ["remove"] and role == "shipper":
-        if any(f in flags for f in ("-f", "--force")):
-            deny("The shipper never force-removes worktrees.")
 
 
 def check_bash(command, cwd, role):
@@ -344,7 +330,7 @@ def decide(event):
     role = event.get("agent_type") or ""
 
     if tool.startswith("mcp__drawio__") and role not in DRAWIO_ROLES:
-        deny("draw.io opens a browser tab; only the aligner and brainstormer use it.")
+        deny("draw.io opens a browser tab; only the planner uses it.")
     if tool == "Agent":
         kind = data.get("subagent_type") or "general-purpose"
         if role in NO_AGENTS:

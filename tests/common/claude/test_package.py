@@ -27,7 +27,7 @@ TOOLS = {"Agent", "Bash", "Edit", "Write", "NotebookEdit", "Read", "Glob", "Grep
 MODELS = {"opus", "sonnet", "haiku", "fable", "inherit"}
 EFFORTS = {"low", "medium", "high", "xhigh", "max"}
 # Skills owned by the owner: never auto-invoked by the model.
-OWNER_ONLY = {"implement", "implement-spec", "ship"}
+OWNER_ONLY = {"implement", "implement-spec", "ship", "recap"}
 # Claude Code built-in commands a user skill must not shadow.
 BUILTIN_COMMANDS = {"code-review", "simplify", "init", "security-review", "loop",
                     "schedule", "run", "review"}
@@ -68,7 +68,7 @@ class Package(unittest.TestCase):
 
     def test_agents_are_valid_and_reference_existing_tools_and_skills(self):
         agents = sorted((CLAUDE / "agents").glob("*.md"))
-        self.assertEqual(len(agents), 13)
+        self.assertEqual(len(agents), 7)
         for path in agents:
             with self.subTest(agent=path.stem):
                 fm = frontmatter(path)
@@ -83,11 +83,10 @@ class Package(unittest.TestCase):
                     self.assertTrue((CLAUDE / "skills" / skill / "SKILL.md").is_file(), skill)
 
     def test_delivery_and_interview_roles_cannot_nest_agents(self):
-        for name in ("builder", "merger", "tester", "reviewer", "cleaner", "refactorer",
-                     "aligner", "brainstormer", "recaper", "tutor"):
+        for name in ("builder", "merger", "tester", "reviewer", "tutor"):
             fm = frontmatter(CLAUDE / "agents" / f"{name}.md")
             self.assertIn("Agent", fm["disallowedTools"], name)
-        for name in ("tester", "reviewer", "recaper", "tutor"):
+        for name in ("tester", "reviewer", "tutor"):
             fm = frontmatter(CLAUDE / "agents" / f"{name}.md")
             self.assertIn("Edit", fm["disallowedTools"], name)
 
@@ -99,14 +98,14 @@ class Package(unittest.TestCase):
         names = {p.stem for p in (CLAUDE / "agents").glob("*.md")}
         roles = (policy.DELIVERY_ROLES | set(policy.SHELL_ALLOW) | set(policy.GIT_DENY)
                  | set(policy.EDIT_ALLOW) | set(policy.AGENT_ALLOW) | policy.DRAWIO_ROLES
-                 | policy.NO_AGENTS | {"shipper", "planner"})
+                 | policy.NO_AGENTS | {"orchestrator", "planner"})
         self.assertLessEqual(roles, names)
         for allowed in policy.AGENT_ALLOW.values():
             self.assertLessEqual(allowed, names | BUILTIN_AGENTS)
 
     def test_skills_resolve_and_names_match_directories(self):
         skills = sorted(p for p in (CLAUDE / "skills").iterdir() if p.is_dir())
-        self.assertEqual(len(skills), 14)
+        self.assertEqual(len(skills), 15)
         for path in skills:
             with self.subTest(skill=path.name):
                 fm = frontmatter(path / "SKILL.md")
@@ -134,8 +133,10 @@ class Package(unittest.TestCase):
 
     def test_adapted_sources_have_not_drifted(self):
         lock = json.loads((CLAUDE / "workflow/adapted-from.json").read_text())["files"]
-        for copy, entry in lock.items():
-            with self.subTest(copy=copy):
+        self.assertEqual(len({(e["copy"], e["source"]) for e in lock}), len(lock))
+        for entry in lock:
+            copy = entry["copy"]
+            with self.subTest(copy=copy, source=entry["source"]):
                 self.assertTrue((CLAUDE / copy).is_file())
                 digest = hashlib.sha256((OPENCODE / entry["source"]).read_bytes()).hexdigest()
                 self.assertEqual(digest, entry["sha256"],
