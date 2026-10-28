@@ -42,7 +42,7 @@ class IdleConfigurationTests(unittest.TestCase):
         self.assertEqual(values["before_sleep_cmd"], "loginctl lock-session")
         self.assertEqual(values["lock_cmd"], "pidof hyprlock || hyprlock")
         self.assertEqual(values["after_sleep_cmd"], "hyprctl dispatch dpms on")
-        with tempfile.TemporaryDirectory(dir="/tmp/opencode") as root:
+        with tempfile.TemporaryDirectory() as root:
             bin_dir = Path(root) / "bin"
             bin_dir.mkdir()
             log = Path(root) / "calls"
@@ -92,7 +92,7 @@ class IdleConfigurationTests(unittest.TestCase):
         # Require known safe command grammar before exercising any config string.
         self.assertEqual([line.strip() for line in request], ["loginctl lock-session"])
         self.assertEqual([line.strip() for line in locker], ["pidof hyprlock || hyprlock"])
-        with tempfile.TemporaryDirectory(dir="/tmp/opencode") as root:
+        with tempfile.TemporaryDirectory() as root:
             bin_dir = Path(root) / "bin"
             bin_dir.mkdir()
             log = Path(root) / "calls"
@@ -129,7 +129,7 @@ class IdleStartupTests(unittest.TestCase):
         self.assertTrue(HELPER.stat().st_mode & 0o111, "startup helper must be executable")
 
     def setUp(self):
-        self.temp = tempfile.TemporaryDirectory(dir="/tmp/opencode")
+        self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.home = Path(self.temp.name)
         self.bin = self.home / "bin"

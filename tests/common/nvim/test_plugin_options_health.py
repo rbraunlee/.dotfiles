@@ -13,7 +13,7 @@ CONFIG = ROOT / "common/nvim/.config/nvim"
 
 class PluginOptionsHealth(unittest.TestCase):
     def run_nvim(self, setup, checks):
-        with tempfile.TemporaryDirectory(prefix="nvim-health-test-", dir="/tmp/opencode") as directory:
+        with tempfile.TemporaryDirectory(prefix="nvim-health-test-") as directory:
             root = Path(directory)
             env = {"PATH": os.defpath}
             for name in ("HOME", "XDG_CONFIG_HOME", "XDG_DATA_HOME", "XDG_CACHE_HOME", "XDG_STATE_HOME"):

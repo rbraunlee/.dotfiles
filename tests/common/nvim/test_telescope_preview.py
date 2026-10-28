@@ -12,7 +12,7 @@ PLUGIN = Path(__file__).resolve().parents[3] / "common/nvim/.config/nvim/lua/plu
 
 class TelescopePreview(unittest.TestCase):
     def run_nvim(self, checks):
-        with tempfile.TemporaryDirectory(prefix="nvim-preview-test-", dir="/tmp/opencode") as directory:
+        with tempfile.TemporaryDirectory(prefix="nvim-preview-test-") as directory:
             root = Path(directory)
             script = root / "test.lua"
             script.write_text("""

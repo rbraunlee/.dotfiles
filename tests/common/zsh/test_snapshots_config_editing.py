@@ -12,7 +12,7 @@ ZSHRC = Path(__file__).resolve().parents[3] / "common/zsh/.zshrc"
 
 class SnapshotsConfigEditingTest(unittest.TestCase):
     def setUp(self):
-        self.temp = tempfile.TemporaryDirectory(prefix="zsh-snapshot-edits-", dir="/tmp/opencode")
+        self.temp = tempfile.TemporaryDirectory(prefix="zsh-snapshot-edits-")
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
         self.home = self.root / "home with spaces"

@@ -13,7 +13,7 @@ PLUGIN = ROOT / "common/nvim/.config/nvim/lua/plugins/treesitter.lua"
 
 class TreesitterAttachment(unittest.TestCase):
     def run_nvim(self, checks):
-        with tempfile.TemporaryDirectory(prefix="nvim-treesitter-test-", dir="/tmp/opencode") as directory:
+        with tempfile.TemporaryDirectory(prefix="nvim-treesitter-test-") as directory:
             root = Path(directory)
             script = root / "test.lua"
             script.write_text(

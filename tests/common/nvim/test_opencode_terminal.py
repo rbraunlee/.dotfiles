@@ -13,7 +13,7 @@ KEYMAPS = Path(__file__).resolve().parents[3] / "common/nvim/.config/nvim/lua/co
 
 class OpenCodeTerminal(unittest.TestCase):
     def setUp(self):
-        self.temporary = tempfile.TemporaryDirectory(prefix="nvim-opencode-test-", dir="/tmp/opencode")
+        self.temporary = tempfile.TemporaryDirectory(prefix="nvim-opencode-test-")
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name)
         self.bin = self.root / "bin"

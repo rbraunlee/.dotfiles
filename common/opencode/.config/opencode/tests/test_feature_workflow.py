@@ -141,8 +141,11 @@ def owned_server(binary, location, env):
         process.stdout.close()
 
 
-def discover_agents(binary, *, fixture_parent="/tmp/opencode"):
-    """Run discovery with a permissions-only config and disposable HOME/Location."""
+def discover_agents(binary, *, fixture_parent=None):
+    """Run discovery in a private temp directory, rejecting ancestor definitions.
+
+    Permission probes use synthetic paths; the server needs no shared temp root.
+    """
     with TemporaryDirectory(dir=fixture_parent) as directory:
         location = Path(directory)
         subprocess.run(["git", "init", "-q", str(location)], check=True,
@@ -453,7 +456,7 @@ class AssetTests(unittest.TestCase):
 
     def test_synthetic_credentials_never_enter_discovery_fixture(self):
         sentinel = "SYNTHETIC_CREDENTIAL_SENTINEL_01"
-        with TemporaryDirectory(dir="/tmp/opencode") as directory:
+        with TemporaryDirectory() as directory:
             source = Path(directory) / "source.jsonc"
             source.write_text(json.dumps({
                 "permissions": [{"action": "read", "resource": "*", "effect": "allow"}],
@@ -466,7 +469,7 @@ class AssetTests(unittest.TestCase):
 
     def test_discovery_is_isolated_from_synthetic_inherited_config(self):
         sentinel = "SYNTHETIC_CREDENTIAL_SENTINEL_02"
-        with TemporaryDirectory(dir="/tmp/opencode") as directory:
+        with TemporaryDirectory() as directory:
             original = os.environ.get("OPENCODE_CONFIG_CONTENT")
             os.environ["OPENCODE_CONFIG_CONTENT"] = sentinel
             try:
@@ -484,7 +487,7 @@ class AssetTests(unittest.TestCase):
 
     def test_discovery_rejects_ancestor_markdown_agents_without_json_config(self):
         sentinel = "SYNTHETIC_CREDENTIAL_SENTINEL_ANCESTOR"
-        with TemporaryDirectory(dir="/tmp/opencode") as directory:
+        with TemporaryDirectory() as directory:
             agents = Path(directory) / ".opencode/agents"
             agents.mkdir(parents=True)
             (agents / "intruder.md").write_text(
@@ -496,7 +499,7 @@ class AssetTests(unittest.TestCase):
     def test_discovery_rejects_all_ancestor_config_and_compatibility_sources(self):
         sentinel = "SYNTHETIC_CREDENTIAL_SENTINEL_COMPATIBILITY"
         for source in ("opencode.json", "opencode.jsonc", ".claude", ".agents"):
-            with self.subTest(source=source), TemporaryDirectory(dir="/tmp/opencode") as directory:
+            with self.subTest(source=source), TemporaryDirectory() as directory:
                 root = Path(directory) / source
                 if source.startswith("."):
                     skills = root / "skills" / "intruder"

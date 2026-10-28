@@ -79,7 +79,7 @@ class NativeSyntaxTests(unittest.TestCase):
     def test_stylesheet_loads_in_gtk3_provider_without_parsing_errors(self):
         flags = subprocess.check_output(["pkg-config", "--cflags", "--libs", "gtk+-3.0"],
                                         text=True).split()
-        with tempfile.TemporaryDirectory(prefix="wofi-gtk-", dir="/tmp/opencode") as root:
+        with tempfile.TemporaryDirectory(prefix="wofi-gtk-") as root:
             binary = pathlib.Path(root) / "probe"
             subprocess.run(["cc", str(PROBE), "-o", str(binary), *flags], check=True,
                            capture_output=True, text=True)

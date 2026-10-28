@@ -15,7 +15,7 @@ PINNED_PROVIDER = Path(__file__).parent / "fixtures/pinned_telescope_find_files.
 
 class ConfigurationSearch(unittest.TestCase):
     def setUp(self):
-        self.temporary = tempfile.TemporaryDirectory(prefix="nvim-search-test-", dir="/tmp/opencode")
+        self.temporary = tempfile.TemporaryDirectory(prefix="nvim-search-test-")
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name)
         self.repo = self.root / "relocated dotfiles"
