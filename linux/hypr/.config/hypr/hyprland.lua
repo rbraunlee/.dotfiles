@@ -164,6 +164,16 @@ hl.bind(mainMod .. " + CTRL + SHIFT + s", hl.dsp.exec_cmd(screenshot))
 -- Toggle local dictation; Voxtype types into whichever field has focus at output time.
 hl.bind(mainMod .. " + CTRL + d", hl.dsp.exec_cmd("voxtype record toggle"))
 
+-- Isolate synthetic dictation from desktop shortcuts while output is typed.
+-- Do not bind Escape here: it can swallow wtype's first character.
+hl.define_submap("voxtype_suppress", function()
+	for _, key in ipairs({ "Super_L", "Super_R", "Control_L", "Control_R", "Alt_L", "Alt_R", "Shift_L", "Shift_R" }) do
+		hl.bind(key, function() end)
+	end
+	-- Release held modifiers, then press F12 if output was interrupted.
+	hl.bind("F12", hl.dsp.submap("reset"))
+end)
+
 --------------------------------
 ---- WINDOWS AND WORKSPACES ----
 --------------------------------

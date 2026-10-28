@@ -13,6 +13,19 @@ the explicit Hyprland start covers that path without starting the target.
 It has no `ydotool` dependency. Voxtype's internal evdev hotkey is disabled;
 the shortcut needs no `input` group membership.
 
+## Dictation shortcut guard
+
+The Lua Hyprland config defines `voxtype_suppress`. Voxtype's pre-output hook
+enters it before typing, and the post-output hook restores normal shortcuts.
+This prevents held Super/Ctrl modifiers from turning dictated digits into
+workspace shortcuts. Recording stays in the normal keymap so Super+Ctrl+D
+still stops recording. No recording submap is used.
+
+Deploy the Hyprland block before restarting Voxtype with the output hooks.
+If output is interrupted and shortcuts remain disabled, release all modifiers
+and press **F12** to restore them. This guard targets desktop shortcut
+interference; avoid holding modifiers while dictating into applications.
+
 ## Installed host and behavior (2026-10-18)
 
 - Installed `voxtype-cuda 1.1.0-1` reports `voxtype 1.1.0+g67a503e`;

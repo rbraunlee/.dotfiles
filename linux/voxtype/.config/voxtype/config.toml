@@ -11,6 +11,9 @@ model = "large-v3-turbo"
 language = "en"
 
 [output]
+# Lua Hyprland: suppress desktop shortcuts only during synthetic text output.
+pre_output_command = "hyprctl dispatch 'hl.dsp.submap(\"voxtype_suppress\")'"
+post_output_command = "hyprctl dispatch 'hl.dsp.submap(\"reset\")'"
 mode = "type"
 driver_order = ["wtype"]
 fallback_to_clipboard = false

@@ -1,6 +1,8 @@
 -- Hyprland API boundary: never execute a shell command or start a desktop process.
 local config_path, case = ...
 local binds = {}
+local submaps = {}
+local current_submap
 local startup = {}
 local launched = {}
 local env = {}
@@ -24,10 +26,18 @@ hl = {
     animation = function() animations = animations + 1 end,
     device = function(options) device = options end,
     bind = function(key, dispatch)
-        binds[#binds + 1] = { key = key, dispatch = dispatch }
+        local target = current_submap and submaps[current_submap] or binds
+        target[#target + 1] = { key = key, dispatch = dispatch }
+    end,
+    define_submap = function(name, callback)
+        submaps[name] = {}
+        current_submap = name
+        callback()
+        current_submap = nil
     end,
     window_rule = function() rules = rules + 1 end,
     dsp = {
+        submap = function(name) return action("submap", name) end,
         exec_cmd = function(command) return action("command", command) end,
         focus = function(options) return action("focus", options) end,
         exit = function() return action("exit") end,
@@ -114,6 +124,14 @@ elseif case == "desktop" then
     assert(curves == 5 and animations == 10 and rules == 4,
         "animations or window rules changed")
 elseif case == "dictation" then
+    local guard = assert(submaps.voxtype_suppress)
+    assert(#guard == 9, "output guard must contain only modifiers and recovery")
+    for i = 1, 8 do
+        assert(type(guard[i].dispatch) == "function")
+        assert(guard[i].dispatch() == nil)
+    end
+    assert(guard[9].key == "F12" and guard[9].dispatch.kind == "submap"
+        and guard[9].dispatch.value == "reset", "missing recovery binding")
     local by_key = {}
     for _, binding in ipairs(binds) do
         assert(not by_key[binding.key], "duplicate key: " .. binding.key)
