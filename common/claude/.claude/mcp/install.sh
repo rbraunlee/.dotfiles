@@ -13,7 +13,7 @@ dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 command -v claude >/dev/null || { echo "claude CLI not found" >&2; exit 1; }
 command -v npm >/dev/null || { echo "npm not found" >&2; exit 1; }
 
-npm install --prefix "$dir" --no-audit --no-fund
+npm ci --prefix "$dir" --no-audit --no-fund
 
 add() {
     name=$1 json=$2

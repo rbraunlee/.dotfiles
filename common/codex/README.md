@@ -62,12 +62,13 @@ small-change path. Self-checks must be reported as such.
 After stowing with `--no-folding`, install the pinned top-level dependencies:
 
 ```sh
-npm install --prefix "$HOME/.local/share/codex-mcp"
+npm ci --prefix "$HOME/.local/share/codex-mcp"
 codex --profile integrations
 ```
 
-The generated lockfile and node_modules stay machine-local; transitive dependencies
-are not locked by this repository. The profile enables Obsidian, Brave and draw.io.
+The committed lockfile pins transitive dependencies; `node_modules` stays
+machine-local. See [dependency maintenance](../../DEPENDENCIES.md) for updates.
+The profile enables Obsidian, Brave and draw.io.
 Supply `OBS_MCP_TOKEN` and `BRAVE_SEARCH_TOKEN` through your existing secret manager
 or private process environment, never committed files. The Brave launcher maps the
 existing token name to the server's `BRAVE_API_KEY`. Obsidian requires the local
