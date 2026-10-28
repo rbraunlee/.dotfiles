@@ -17,6 +17,7 @@ TARGETS = {
     'common/nvim': '.config/nvim/init.lua',
     'common/opencode': '.config/opencode/opencode.jsonc',
     'common/starship': '.config/starship.toml',
+    'common/t3': '.config/t3/themes/gruvbox-material.json',
     'common/tmux': '.config/tmux/tmux.conf',
     'common/wallpaper': 'Pictures/Wallpapers/gruvbox_arch.png',
     'common/zsh': '.zshrc',

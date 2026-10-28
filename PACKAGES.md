@@ -15,7 +15,7 @@ reconciliation. Avoid `--adopt`, which can change repository contents. Use the s
 `--no-folding` flag with `-R` to restow or `-D` to unstow. This keeps directories
 real so applications can create runtime state outside the checkout.
 
-`python3 -B tests/run.py common/stow` checks all 19 packages individually and in
+`python3 -B tests/run.py common/stow` checks all 20 packages individually and in
 combined common+Linux and common+macOS layouts, including conflicts, cross-package
 links and preservation of synthetic runtime files. These are filesystem checks on
 Linux; they do not prove native macOS or desktop behavior. The legacy Bash package
@@ -41,6 +41,11 @@ is included for link integrity, not endorsed for deployment.
 - **`starship`** — Starship; the Zsh package initializes it when available.
   A new prompt picks up configuration changes. Coverage: Stow only; inspect a
   prompt in the actual shell and font.
+- **`t3`** — T3 Code; a Gruvbox Material theme matching Ghostty. Publish it with
+  `~/.t3/bin/t3 theme set ~/.config/t3/themes/gruvbox-material.json` after
+  stowing, and again after edits. Fonts are set in T3's settings. See
+  [T3 notes](common/t3/README.md). Coverage: Stow only; theme rendering is a
+  manual check.
 - **`wallpaper`** — PNG files under `~/Pictures/Wallpapers`; needs a wallpaper
   application to display them. Reapply using that application. Coverage: Stow
   only; monitor sizing and image selection are manual checks.
