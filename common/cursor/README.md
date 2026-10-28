@@ -8,17 +8,18 @@ Skills for Cursor/Composer. **This package no longer ships agents** — see
 From the dotfiles root:
 
 ```bash
-stow -d common -t ~ cursor
+stow --no-folding -d common -t ~ cursor
 ```
 
 To remove:
 
 ```bash
-stow -D -d common -t ~ cursor
+stow -D --no-folding -d common -t ~ cursor
 ```
 
-**Note:** If `~/.cursor/skills` already exists as a real directory with other
-content, stow will conflict. Resolve before installing.
+**Note:** Existing directories can coexist with Stow links. Conflicting files
+at package-owned paths must be reconciled before installation; do not use
+`--adopt` to overwrite the repository copy.
 
 ## Skills
 

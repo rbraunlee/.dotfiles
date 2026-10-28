@@ -4,8 +4,9 @@ Managed with [GNU Stow](https://www.gnu.org/software/stow/).
 
 ## Prerequisites
 
-- stow
-- npm
+- Git and GNU Stow
+- The applications for your selected packages (see [package inventory](PACKAGES.md))
+- Node.js/npm only for optional MCP integrations
 - [Nerd Font](https://www.nerdfonts.com/) (e.g. Comic Shanns Mono)
 
 ## Structure
@@ -101,38 +102,55 @@ suggest a rebase instead of leaving a merge commit on `main`.
 Dry run first to check for conflicts:
 
 ```bash
-stow -n -v -t ~ -d common nvim zsh ghostty tmux starship cursor opencode wallpaper
+stow -n -v --no-folding -t ~ -d common nvim zsh ghostty tmux starship wallpaper
 ```
 
 Apply for real (drop `-n -v`):
 
 ```bash
-stow -t ~ -d common nvim zsh ghostty tmux starship cursor opencode wallpaper
+stow --no-folding -t ~ -d common nvim zsh ghostty tmux starship wallpaper
 ```
 
 Platform-specific:
 
 ```bash
-# linux
-stow -t ~ -d linux bash hypr swappy waybar wofi zsh
+# linux: select packages for your desktop; inspect existing configs first
+stow -n -v --no-folding -t ~ -d linux hypr swappy waybar wofi zsh
+# Optional dictation config and user service; read linux/voxtype/README.md first
+stow -n -v --no-folding -t ~ -d linux voxtype
 
 # macos
-stow -t ~ -d macos aerospace
+stow -n -v --no-folding -t ~ -d macos aerospace
 ```
+
+Drop `-n -v` only after reviewing conflicts. These commands link files; they do
+not install applications, reload the desktop or enable services. The legacy Bash
+package is opt-in. See [all packages and optional agent setup](PACKAGES.md).
 
 ### Unstow
 
 ```bash
-stow -D -t ~ -d common nvim
+stow -D --no-folding -t ~ -d common nvim
 ```
 
 ### Restow (clean re-link)
 
 ```bash
-stow -R -t ~ -d common nvim
+stow -R --no-folding -t ~ -d common nvim
 ```
 
 ## Notes
+
+### Repository checks
+
+Run all package suites, including OpenCode's package-local tests:
+
+```bash
+python3 -B tests/run.py
+```
+
+See [test prerequisites and coverage](tests/README.md) for native dependencies,
+suite selection, optional-tool skips and checks that require a live desktop.
 
 ### Codex feature delivery
 
@@ -162,6 +180,14 @@ Run the package's configuration regression checks from the repository root:
 python3 -m unittest discover -s common/opencode/.config/opencode/tests -v
 ```
 
+Optional local MCP dependencies are installed after stowing with:
+
+```bash
+npm ci --prefix "$HOME/.config/opencode"
+```
+
+See [dependency maintenance](DEPENDENCIES.md) for lockfiles and intentional updates.
+
 Runtime checks require OpenCode and the `opencode` package to be stowed. The checks
 make no model calls and do not mutate project files.
 
@@ -188,8 +214,6 @@ limits. Run its checks with `python3 -m unittest discover -s tests/common/claude
 
 ### tmux plugins
 
-```bash
-git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
-```
-
-Open tmux and press `prefix + I` to install plugins.
+TPM manages plugins under `~/.tmux/plugins`, outside the Stow checkout.
+See [tmux installation and migration](common/tmux/README.md) for bootstrap,
+reload, persistence and verification instructions.

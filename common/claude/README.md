@@ -7,12 +7,12 @@ settings and a `PreToolUse` policy hook. How each OpenCode piece maps is recorde
 
 ## Install
 
-`~/.claude` already exists and holds credentials and sessions, so stow links the
-package's entries into it rather than replacing it:
+`--no-folding` keeps `~/.claude` a real directory even on a fresh home, so
+credentials and sessions stay outside the checkout:
 
 ```bash
-stow -n -v -t ~ -d common claude   # dry run
-stow -t ~ -d common claude
+stow -n -v --no-folding -t ~ -d common claude   # dry run
+stow --no-folding -t ~ -d common claude
 ```
 
 The unchanged skills are symlinks into the `opencode` package, so keep both packages
@@ -26,6 +26,10 @@ in the shell that starts Claude Code, then run once:
 ```bash
 ~/.claude/mcp/install.sh
 ```
+
+The script runs `npm ci` using the committed lockfile before registering servers.
+If dependency installation fails, registration stops. See
+[dependency maintenance](../../DEPENDENCIES.md) for updates.
 
 The Obsidian server uses a self-signed certificate on `127.0.0.1`. If it fails to
 connect, point `NODE_EXTRA_CA_CERTS` at the plugin's certificate.
