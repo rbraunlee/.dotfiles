@@ -13,3 +13,7 @@ env_vars = ["BRAVE_SEARCH_TOKEN", "HOME"]
 command = "sh"
 args = ["-c", 'exec "$HOME/.local/share/codex-mcp/node_modules/.bin/drawio-mcp"']
 env_vars = ["HOME"]
+
+# Hosted server; authenticate once with: codex --profile integrations mcp login linear
+[mcp_servers.linear]
+url = "https://mcp.linear.app/mcp"

@@ -27,6 +27,9 @@ in the shell that starts Claude Code, then run once:
 ~/.claude/mcp/install.sh
 ```
 
+Linear is a hosted server that signs in with OAuth instead of a token: run `/mcp`
+in Claude Code once and authenticate `linear` in the browser.
+
 The script runs `npm ci` using the committed lockfile before registering servers.
 If dependency installation fails, registration stops. See
 [dependency maintenance](../../DEPENDENCIES.md) for updates.

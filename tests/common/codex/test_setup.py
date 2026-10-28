@@ -42,6 +42,7 @@ class PackageIntegrity(unittest.TestCase):
         servers = config["mcp_servers"]
         self.assertEqual(servers["obsidian"]["bearer_token_env_var"], "OBS_MCP_TOKEN")
         self.assertIn("BRAVE_SEARCH_TOKEN", servers["brave-search"]["env_vars"])
+        self.assertEqual(servers["linear"]["url"], "https://mcp.linear.app/mcp")
         for server in servers.values():
             self.assertNotIn("http_headers", server)
         dependencies = json.loads(

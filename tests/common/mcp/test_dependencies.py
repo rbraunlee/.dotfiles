@@ -57,7 +57,7 @@ class Dependencies(unittest.TestCase):
         result, calls = self.installer(0)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertTrue(calls[0].startswith('npm:ci --prefix '), calls)
-        self.assertEqual(sum(line.startswith('claude:mcp add-json') for line in calls), 3)
+        self.assertEqual(sum(line.startswith('claude:mcp add-json') for line in calls), 4)
 
     def test_failed_install_does_not_change_registrations(self):
         result, calls = self.installer(7)

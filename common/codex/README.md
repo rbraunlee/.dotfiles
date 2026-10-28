@@ -68,7 +68,8 @@ codex --profile integrations
 
 The committed lockfile pins transitive dependencies; `node_modules` stays
 machine-local. See [dependency maintenance](../../DEPENDENCIES.md) for updates.
-The profile enables Obsidian, Brave and draw.io.
+The profile enables Obsidian, Brave, draw.io and Linear. Linear is hosted and uses
+OAuth; sign in once with `codex --profile integrations mcp login linear`.
 Supply `OBS_MCP_TOKEN` and `BRAVE_SEARCH_TOKEN` through your existing secret manager
 or private process environment, never committed files. The Brave launcher maps the
 existing token name to the server's `BRAVE_API_KEY`. Obsidian requires the local

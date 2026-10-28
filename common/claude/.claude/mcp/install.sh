@@ -1,10 +1,11 @@
 #!/bin/sh
-# Register the Obsidian, Brave Search and draw.io MCP servers at Claude Code
+# Register the Obsidian, Brave Search, draw.io and Linear MCP servers at Claude Code
 # user scope. User-scope servers live in ~/.claude.json, which Claude Code owns
 # and rewrites, so they are installed by this script instead of being stowed.
 #
 # Tokens stay in the environment: the ${VAR} references are written literally
 # and expanded by Claude Code at start-up (OBS_MCP_TOKEN, BRAVE_SEARCH_TOKEN).
+# Linear is hosted and uses OAuth: authenticate once from /mcp in Claude Code.
 # Safe to re-run: each server is removed and added again.
 set -eu
 
@@ -27,5 +28,6 @@ add obsidian '{"type":"http","url":"https://127.0.0.1:27124/mcp/","headers":{"Au
 add brave-search '{"type":"stdio","command":"sh","args":["-c","exec \"$HOME/.claude/mcp/node_modules/.bin/mcp-server-brave-search\" \"$@\"","--"],"env":{"BRAVE_API_KEY":"${BRAVE_SEARCH_TOKEN}"}}'
 # shellcheck disable=SC2016
 add drawio '{"type":"stdio","command":"sh","args":["-c","exec \"$HOME/.claude/mcp/node_modules/.bin/drawio-mcp\" \"$@\"","--"]}'
+add linear '{"type":"http","url":"https://mcp.linear.app/mcp"}'
 
 claude mcp list
