@@ -1,0 +1,4 @@
+# Package documentation and preserved legacy plugin checkouts are not dotfiles.
+^/README\.md$
+^/\.gitignore$
+^/\.config/tmux/plugins(/|$)

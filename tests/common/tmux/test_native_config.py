@@ -57,6 +57,10 @@ class NativeTmuxConfig(unittest.TestCase):
         self.assertIn("xterm*:Tc", overrides)
         self.assertNotIn("xterm*Tc", overrides)
 
+    def test_plugin_download_path_is_outside_stow_configuration(self):
+        value = self.run_tmux("show-environment", "-g", "TMUX_PLUGIN_MANAGER_PATH").stdout.strip()
+        self.assertEqual(value, "TMUX_PLUGIN_MANAGER_PATH=~/.tmux/plugins/")
+
     def test_vi_copy_y_uses_native_copy_and_cancel(self):
         bindings = self.run_tmux("list-keys", "-T", "copy-mode-vi").stdout
         self.assertIsNotNone(re.search(
