@@ -2,6 +2,13 @@ return {
 	-- Autoformat
 	"stevearc/conform.nvim",
 	lazy = false,
+	dependencies = {
+		{
+			"WhoIsSethDaniel/mason-tool-installer.nvim",
+			dependencies = { "mason-org/mason.nvim" },
+			opts = { ensure_installed = { "prettier" } },
+		},
+	},
 	keys = {
 		{
 			"<leader>f",
@@ -22,10 +29,7 @@ return {
 			lua = { "stylua" },
 			-- Conform can also run multiple formatters sequentially
 			python = { "isort", "black" },
-			--
-			-- You can use a sub-list to tell conform to run *until* a formatter
-			-- is found.
-			markdown = { "prettierd", "prettier" },
+			markdown = { "prettier" },
 			-- javascript = { { "prettierd", "prettier" } },
 			json = { "prettierd", "prettier" },
 		},

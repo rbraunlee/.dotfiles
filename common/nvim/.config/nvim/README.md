@@ -54,13 +54,27 @@ warns for optional `make`/`rg`/`unzip`. Other health warnings can be specific
 to languages/plugins you do not use; don't treat every warning as a required
 installation. Mason's `ensure_installed` list provisions configured language
 servers (`lua_ls`, `pyright`, `bashls`, `dockerls`, `marksman`, `jsonls`), **not**
-Conform's formatter executables. Provision `stylua` for Lua, `isort` then
-`black` for Python, and `prettierd` and/or `prettier` for Markdown and JSON
-separately on PATH if you use those formats. The configured lists run available
-formatters in order (not as a first-available fallback). Existing on-save/manual
-formatting and Black's 100-column option are unchanged. The Ollama
+Conform's formatter executables. `mason-tool-installer.nvim` installs
+`prettier` automatically for Markdown (requires npm and network access on first
+installation). Provision `stylua` for Lua and `isort` then `black` for Python
+separately if you use those formats. JSON runs available `prettierd` and
+`prettier` formatters in order. Black uses a 100-column option. The Ollama
 integration separately requires a running local service and its configured
 `codellama` model if you use it.
+
+## Markdown formatting
+
+Restart Neovim and let Lazy install the new plugin; Mason then installs Prettier.
+Open a `.md` file and save with `:w` to format automatically, or press **Space f**
+in normal mode to format manually. Prettier handles Markdown lists, tables,
+spacing, and supported fenced code blocks, using project Prettier configuration
+when present. The existing save-format timeout is 500 ms; if a large document
+times out, use Space f to format asynchronously before saving.
+
+Run `:ConformInfo` to check formatter availability. If installation has not
+finished, check `:Mason` or run `:MasonToolsInstall`. Node.js/npm must be available
+to install and run Prettier. Marksman provides language features, while Prettier
+provides formatting.
 
 ## OpenCode terminal
 
