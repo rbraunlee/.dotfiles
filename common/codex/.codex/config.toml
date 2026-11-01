@@ -9,3 +9,9 @@ max_concurrent_threads_per_session = 3
 
 [shell_environment_policy]
 ignore_default_excludes = false
+
+[projects."/home/rbl/.dotfiles"]
+trust_level = "trusted"
+
+[projects."/home/rbl/ansible_arch"]
+trust_level = "trusted"

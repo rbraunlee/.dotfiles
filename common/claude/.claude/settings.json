@@ -1,9 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "permissions": {
-    "additionalDirectories": [
-      "~/.local/share/claude-worktrees"
-    ],
     "allow": [
       "Bash(man *)",
       "Bash(MANPAGER=cat PAGER=cat man *)",
@@ -13,23 +10,6 @@
       "Read(~/.claude/skills/**)",
       "Read(~/.claude/agents/**)",
       "Read(~/.claude/workflow/**)"
-    ],
-    "ask": [
-      "Bash(git push *)",
-      "Bash(gh pr create *)",
-      "Bash(git reset --hard *)",
-      "Bash(git clean -f*)",
-      "Bash(git filter-branch*)",
-      "Bash(git branch -D *)",
-      "Bash(git branch --delete --force *)",
-      "Bash(git worktree remove --force *)",
-      "Bash(git worktree remove -f *)",
-      "Bash(rm -rf *)",
-      "Bash(rm -fr *)",
-      "Bash(rm -r -f *)",
-      "Bash(dd *)",
-      "Bash(mkfs*)",
-      "Bash(sudo *)"
     ],
     "deny": [
       "Bash(gh pr merge *)",
@@ -51,6 +31,26 @@
       "Edit(//**/*.pypirc)",
       "Read(//etc/**)",
       "Edit(//etc/**)"
+    ],
+    "ask": [
+      "Bash(git push *)",
+      "Bash(gh pr create *)",
+      "Bash(git reset --hard *)",
+      "Bash(git clean -f*)",
+      "Bash(git filter-branch*)",
+      "Bash(git branch -D *)",
+      "Bash(git branch --delete --force *)",
+      "Bash(git worktree remove --force *)",
+      "Bash(git worktree remove -f *)",
+      "Bash(rm -rf *)",
+      "Bash(rm -fr *)",
+      "Bash(rm -r -f *)",
+      "Bash(dd *)",
+      "Bash(mkfs*)",
+      "Bash(sudo *)"
+    ],
+    "additionalDirectories": [
+      "~/.local/share/claude-worktrees"
     ]
   },
   "hooks": {
@@ -67,5 +67,6 @@
         ]
       }
     ]
-  }
+  },
+  "theme": "dark"
 }
