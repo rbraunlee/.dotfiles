@@ -23,6 +23,7 @@ local screenshot = "flameshot gui"
 
 -- only what actually exists on this machine
 hl.on("hyprland.start", function()
+	hl.exec_cmd('sh -c \'[ ! -x "$HOME/.local/bin/focus" ] || exec "$HOME/.local/bin/focus" --daily\'')
 	hl.exec_cmd("waybar")
 	hl.exec_cmd("hyprpaper")
 	hl.exec_cmd("mako")

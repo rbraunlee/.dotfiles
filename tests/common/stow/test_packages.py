@@ -17,6 +17,8 @@ TARGETS = {
     'common/nvim': '.config/nvim/init.lua',
     'common/opencode': '.config/opencode/opencode.jsonc',
     'common/starship': '.config/starship.toml',
+    'common/scripts': '.local/bin/focus',
+    'macos/scripts': '.local/bin/notetaker-macos',
     'common/t3': '.config/t3/themes/gruvbox-material.json',
     'common/tmux': '.config/tmux/tmux.conf',
     'common/wallpaper': 'Pictures/Wallpapers/gruvbox_arch.png',

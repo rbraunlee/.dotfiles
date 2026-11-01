@@ -69,13 +69,14 @@ if case == "screenshot" then
 elseif case == "startup" then
     assert(#startup == 1, "startup handler changed")
     startup[1]()
-    assert(#launched == 7, "autostart commands changed")
-    assert(launched[1] == "waybar" and launched[2] == "hyprpaper"
-        and launched[3] == "mako"
-        and launched[4] == 'gsettings set org.gnome.desktop.interface color-scheme "prefer-dark"'
-        and launched[5] == "/usr/lib/polkit-kde-authentication-agent-1"
-        and launched[6] == '"$HOME/.config/hypr/start-hypridle.sh"'
-        and launched[7] == "sh -c 'systemctl --user import-environment WAYLAND_DISPLAY DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE HYPRLAND_INSTANCE_SIGNATURE && systemctl --user start voxtype.service'",
+    assert(launched[1] == 'sh -c \'[ ! -x "$HOME/.local/bin/focus" ] || exec "$HOME/.local/bin/focus" --daily\'', "expected guarded daily focus startup")
+    assert(#launched == 8, "autostart commands changed")
+    assert(launched[2] == "waybar" and launched[3] == "hyprpaper"
+        and launched[4] == "mako"
+        and launched[5] == 'gsettings set org.gnome.desktop.interface color-scheme "prefer-dark"'
+        and launched[6] == "/usr/lib/polkit-kde-authentication-agent-1"
+        and launched[7] == '"$HOME/.config/hypr/start-hypridle.sh"'
+        and launched[8] == "sh -c 'systemctl --user import-environment WAYLAND_DISPLAY DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE HYPRLAND_INSTANCE_SIGNATURE && systemctl --user start voxtype.service'",
         "autostart must retain desktop programs, guarded idle startup and managed Voxtype startup")
     assert(env.XCURSOR_SIZE == "24" and env.HYPRCURSOR_SIZE == "24"
         and env.LIBVA_DRIVER_NAME == "nvidia" and env.__GLX_VENDOR_LIBRARY_NAME == "nvidia",
@@ -86,14 +87,15 @@ elseif case == "startup" then
 elseif case == "voxtype_startup" then
     assert(#startup == 1 and #launched == 0, "config load/reload must not launch a daemon")
     startup[1]()
-    assert(#launched == 7, "expected guarded idle startup and one managed Voxtype dispatch")
-    assert(launched[6] == '"$HOME/.config/hypr/start-hypridle.sh"',
+    assert(launched[1] == 'sh -c \'[ ! -x "$HOME/.local/bin/focus" ] || exec "$HOME/.local/bin/focus" --daily\'', "expected guarded daily focus startup")
+    assert(#launched == 8, "expected guarded idle startup and one managed Voxtype dispatch")
+    assert(launched[7] == '"$HOME/.config/hypr/start-hypridle.sh"',
         "guarded idle startup must remain independent of managed Voxtype startup")
-    for i = 1, 6 do
+    for i = 2, 7 do
         assert(not launched[i]:find("voxtype") and not launched[i]:find("systemctl"),
             "existing autostart dispatches changed")
     end
-    print(launched[7])
+    print(launched[8])
 elseif case == "desktop" then
     local by_key = {}
     for _, binding in ipairs(binds) do

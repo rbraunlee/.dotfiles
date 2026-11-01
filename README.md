@@ -139,6 +139,11 @@ stow -D --no-folding -t ~ -d common nvim
 stow -R --no-folding -t ~ -d common nvim
 ```
 
+## Personal scripts
+
+See [personal commands and daily focus startup](common/scripts/README.md) for
+the optional `scripts` Stow package.
+
 ## Notes
 
 ### Repository checks

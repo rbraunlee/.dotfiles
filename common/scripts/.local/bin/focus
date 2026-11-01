@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# Daily desktop entry point; invoked directly by Hyprland, never by .zshrc.
+set -euo pipefail
+config=${XDG_CONFIG_HOME:-$HOME/.config}/focus
+state=${XDG_STATE_HOME:-$HOME/.local/state}/focus
+fail() { printf 'focus: %s\n' "$*" >&2; exit 1; }
+case ${1:---daily} in
+    --set)
+        [[ $# == 2 && -d $2 ]] || fail 'usage: focus --set /path/to/project'
+        project=$(cd -- "$2" && pwd -P)
+        mkdir -p -- "$config"
+        printf '%s\n' "$project" > "$config/project"
+        exit 0
+        ;;
+    --daily|--now|--attach) [[ $# -le 1 ]] || fail 'unexpected arguments' ;;
+    *) fail 'usage: focus [--daily | --now | --set /path/to/project]' ;;
+esac
+# Unconfigured installations quietly opt out of desktop startup.
+[[ -f $config/project ]] || { [[ ${1:---daily} == --daily ]] && exit 0; fail 'choose a project with focus --set /path/to/project'; }
+IFS= read -r project < "$config/project"
+[[ -d $project ]] || fail "project no longer exists: $project"
+command -v tmux >/dev/null || fail 'tmux is required'
+mkdir -p -- "$state"
+today=$(date +%F)
+if [[ ${1:-} == --attach ]]; then
+    # A private server avoids continuum restoring unrelated sessions here.
+    tmux -L focus -f /dev/null new-session -d -s focus -c "$project" 2>/dev/null ||
+        tmux -L focus has-session -t '=focus'
+    printf '%s\n' "$today" > "$state/last-day"
+    exec tmux -L focus attach-session -t '=focus'
+fi
+command -v flock >/dev/null || fail 'flock is required (util-linux)'
+command -v ghostty >/dev/null || fail 'ghostty is required'
+# Hold the lock for the terminal lifetime to avoid duplicate startup windows.
+exec 9> "$state/lock"
+flock -n 9 || exit 0
+if [[ ${1:---daily} == --daily && -f $state/last-day ]]; then
+    IFS= read -r last_day < "$state/last-day" || true
+    [[ ${last_day:-} != "$today" ]] || exit 0
+fi
+script=$(realpath -- "$0")
+ghostty -e "$script" --attach

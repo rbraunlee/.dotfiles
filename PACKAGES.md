@@ -15,13 +15,17 @@ reconciliation. Avoid `--adopt`, which can change repository contents. Use the s
 `--no-folding` flag with `-R` to restow or `-D` to unstow. This keeps directories
 real so applications can create runtime state outside the checkout.
 
-`python3 -B tests/run.py common/stow` checks all 20 packages individually and in
+`python3 -B tests/run.py common/stow` checks all 22 packages individually and in
 combined common+Linux and common+macOS layouts, including conflicts, cross-package
 links and preservation of synthetic runtime files. These are filesystem checks on
 Linux; they do not prove native macOS or desktop behavior. The legacy Bash package
 is included for link integrity, not endorsed for deployment.
 
 ## Common packages
+
+- **`scripts`** — Personal commands: daily Linux focus startup and note-taking.
+  See [setup and dependencies](common/scripts/README.md). The optional
+  `macos/scripts` package supplies `notetaker-macos`.
 
 - **`nvim`** — Neovim, Git, a compiler and the parser/language tooling listed in
   [its README](common/nvim/.config/nvim/README.md). Optional OpenCode terminal and
