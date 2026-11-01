@@ -1,5 +1,12 @@
 # tmux package
 
+## Known issues
+
+- Stow alone does not install plugins. If Ctrl-h/j/k/l pane navigation does
+  nothing on a host, check that TPM and the plugins exist under
+  `~/.tmux/plugins/` (not the old XDG directories) and follow the install steps
+  below.
+
 ## Install
 
 Requires tmux, Git and GNU Stow. From the repository root:

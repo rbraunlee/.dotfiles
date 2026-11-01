@@ -7,6 +7,12 @@ from [Kickstart.nvim](https://github.com/nvim-lua/kickstart.nvim) and
 it is not a standalone, single-file Kickstart clone. See [LICENSE.md](LICENSE.md)
 for the retained MIT license.
 
+## Known issues
+
+- TODO: Investigate Python package recognition and completion. Neovim reports
+  unrecognized packages with red underlines and does not suggest symbols such as
+  `pandas.testing.assert_frame_equal`.
+
 ## Deploy with GNU Stow
 
 Follow the [repository setup and Stow instructions](../../../../README.md) for
