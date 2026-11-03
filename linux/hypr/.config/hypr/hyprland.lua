@@ -16,6 +16,7 @@ local terminal = "ghostty"
 local fileManager = "dolphin"
 local menu = "wofi --show drun"
 local screenshot = "flameshot gui"
+local ansible_optional = dofile(os.getenv("HOME") .. "/.config/hypr/ansible_arch_optional_overlay_v2.lua")
 
 -------------------
 ---- AUTOSTART ----
@@ -30,9 +31,11 @@ hl.on("hyprland.start", function()
 	hl.exec_cmd('gsettings set org.gnome.desktop.interface color-scheme "prefer-dark"') -- for GTK4 apps
 	hl.exec_cmd("/usr/lib/polkit-kde-authentication-agent-1")
 	hl.exec_cmd('"$HOME/.config/hypr/start-hypridle.sh"')
+if ansible_optional.voxtype_enabled then
 	-- start is idempotent for an already active user unit; do not spawn a second daemon.
 	-- Use a shell so the start is conditional on importing the Wayland session first.
 	hl.exec_cmd("sh -c 'systemctl --user import-environment WAYLAND_DISPLAY DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE HYPRLAND_INSTANCE_SIGNATURE && systemctl --user start voxtype.service'")
+end
 end)
 
 -------------------------------
@@ -41,8 +44,10 @@ end)
 
 hl.env("XCURSOR_SIZE", "24")
 hl.env("HYPRCURSOR_SIZE", "24")
-hl.env("LIBVA_DRIVER_NAME", "nvidia")
-hl.env("__GLX_VENDOR_LIBRARY_NAME", "nvidia")
+if ansible_optional.nvidia_environment then
+	hl.env("LIBVA_DRIVER_NAME", "nvidia")
+	hl.env("__GLX_VENDOR_LIBRARY_NAME", "nvidia")
+end
 
 -----------------------
 ---- LOOK AND FEEL ----
@@ -162,18 +167,20 @@ hl.bind(mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
 -- Screenshot
 hl.bind(mainMod .. " + CTRL + SHIFT + s", hl.dsp.exec_cmd(screenshot))
 
--- Toggle local dictation; Voxtype types into whichever field has focus at output time.
-hl.bind(mainMod .. " + CTRL + d", hl.dsp.exec_cmd("voxtype record toggle"))
+if ansible_optional.voxtype_enabled then
+	-- Toggle local dictation; Voxtype types into whichever field has focus at output time.
+	hl.bind(mainMod .. " + CTRL + d", hl.dsp.exec_cmd("voxtype record toggle"))
 
--- Isolate synthetic dictation from desktop shortcuts while output is typed.
--- Do not bind Escape here: it can swallow wtype's first character.
-hl.define_submap("voxtype_suppress", function()
-	for _, key in ipairs({ "Super_L", "Super_R", "Control_L", "Control_R", "Alt_L", "Alt_R", "Shift_L", "Shift_R" }) do
-		hl.bind(key, function() end)
-	end
-	-- Release held modifiers, then press F12 if output was interrupted.
-	hl.bind("F12", hl.dsp.submap("reset"))
-end)
+	-- Isolate synthetic dictation from desktop shortcuts while output is typed.
+	-- Do not bind Escape here: it can swallow wtype's first character.
+	hl.define_submap("voxtype_suppress", function()
+		for _, key in ipairs({ "Super_L", "Super_R", "Control_L", "Control_R", "Alt_L", "Alt_R", "Shift_L", "Shift_R" }) do
+			hl.bind(key, function() end)
+		end
+		-- Release held modifiers, then press F12 if output was interrupted.
+		hl.bind("F12", hl.dsp.submap("reset"))
+	end)
+end
 
 --------------------------------
 ---- WINDOWS AND WORKSPACES ----
